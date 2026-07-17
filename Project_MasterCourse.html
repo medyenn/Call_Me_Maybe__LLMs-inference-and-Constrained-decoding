@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Call Me Maybe — Function Calling Master Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #05070d;
+  --bg-panel: #0a0f1c;
+  --bg-panel-2: #0d1424;
+  --ink: #e8edf9;
+  --ink-dim: #8b98b8;
+  --ink-faint: #5c6785;
+  --line: rgba(140,170,230,0.14);
+  --line-strong: rgba(140,170,230,0.28);
+
+  --cyan: #2af0ff;
+  --cyan-dim: rgba(42,240,255,0.35);
+  --magenta: #ff3ec8;
+  --magenta-dim: rgba(255,62,200,0.35);
+  --violet: #a45bff;
+  --violet-dim: rgba(164,91,255,0.35);
+  --lime: #d6ff3f;
+  --amber: #ffb020;
+
+  --part-a: var(--cyan);
+  --part-b: var(--magenta);
+  --part-c: var(--violet);
+
+  --sidebar-w: 340px;
+  --display: "Orbitron", "Space Grotesk", sans-serif;
+  --heading: "Space Grotesk", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", "Fira Code", Consolas, monospace;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto; }
+  *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}
+
+html, body{ margin:0; padding:0; background: var(--bg); }
+body{
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16.5px;
+  line-height: 1.72;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ---------- ambient circuit background ---------- */
+.circuit-bg{
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
+}
+.circuit-bg svg{ width:100%; height:100%; }
+.circuit-bg .trace{
+  fill: none;
+  stroke-width: 1;
+  stroke: rgba(42,240,255,0.10);
+}
+.circuit-bg .trace.alt{ stroke: rgba(164,91,255,0.09); }
+.circuit-bg .pulse{
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 6 900;
+  animation: travel 9s linear infinite;
+}
+.circuit-bg .pulse.c1{ stroke: var(--cyan); }
+.circuit-bg .pulse.c2{ stroke: var(--magenta); animation-delay: -3s; animation-duration: 12s; }
+.circuit-bg .pulse.c3{ stroke: var(--violet); animation-delay: -6s; animation-duration: 15s; }
+@keyframes travel{
+  0%{ stroke-dashoffset: 0; opacity: 0; }
+  4%{ opacity: 1; }
+  92%{ opacity: 1; }
+  100%{ stroke-dashoffset: -900; opacity: 0; }
+}
+.circuit-bg .node{ fill: var(--cyan); opacity: 0.5; animation: blink 3.2s ease-in-out infinite; }
+.circuit-bg .node.n2{ fill: var(--magenta); animation-delay: 1s; }
+.circuit-bg .node.n3{ fill: var(--violet); animation-delay: 2s; }
+@keyframes blink{ 0%,100%{ opacity: 0.15; } 50%{ opacity: 0.85; } }
+
+.vignette{
+  position: fixed; inset:0; z-index: 1; pointer-events:none;
+  background: radial-gradient(ellipse at 50% -10%, rgba(42,240,255,0.05), transparent 45%),
+              radial-gradient(ellipse at 100% 100%, rgba(164,91,255,0.06), transparent 45%),
+              radial-gradient(ellipse at 0% 100%, rgba(255,62,200,0.05), transparent 45%);
+}
+
+/* ---------- scroll progress bar ---------- */
+#progress-bar{
+  position: fixed; top:0; left:0; height: 3px; width:0%;
+  z-index: 1000;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta));
+  box-shadow: 0 0 12px var(--cyan-dim), 0 0 20px var(--magenta-dim);
+  transition: width 0.08s linear;
+}
+
+/* ---------- layout ---------- */
+.page{
+  position: relative; z-index: 2;
+  display:flex; align-items:flex-start;
+  max-width: 1400px; margin: 0 auto;
+}
+
+#TOC{
+  position: sticky; top:0; height:100vh; overflow-y:auto;
+  width: var(--sidebar-w); flex: 0 0 var(--sidebar-w);
+  padding: 30px 20px 60px 30px;
+  background: linear-gradient(180deg, rgba(10,15,28,0.92), rgba(10,15,28,0.98));
+  border-right: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+}
+#TOC::-webkit-scrollbar{ width:7px; }
+#TOC::-webkit-scrollbar-thumb{ background: linear-gradient(var(--cyan), var(--violet)); border-radius:4px; }
+#TOC::-webkit-scrollbar-track{ background: transparent; }
+
+#TOC-label{
+  font-family: var(--mono); font-size: 0.72em; letter-spacing:0.22em; text-transform:uppercase;
+  color: var(--ink-faint); margin: 0 0 6px 0;
+}
+#TOC-progress{
+  font-family: var(--mono); font-size: 0.72em; color: var(--cyan);
+  margin: 0 0 22px 0; display:flex; align-items:center; gap:8px;
+}
+#TOC-progress .bar{
+  flex:1; height:4px; background: rgba(140,170,230,0.15); border-radius:2px; overflow:hidden;
+}
+#TOC-progress .bar > span{
+  display:block; height:100%; width:0%;
+  background: linear-gradient(90deg, var(--cyan), var(--lime));
+  box-shadow: 0 0 8px var(--cyan-dim);
+  transition: width 0.4s ease;
+}
+#TOC-reset{
+  font-family: var(--mono); font-size: 0.68em; color: var(--ink-faint);
+  background: none; border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 8px; cursor:pointer; letter-spacing: 0.05em;
+}
+#TOC-reset:hover{ color: var(--magenta); border-color: var(--magenta-dim); }
+
+#TOC > ul{ list-style:none; margin:0; padding:0; }
+#TOC ul{ list-style:none; margin:0; padding-left:16px; }
+#TOC li{ margin:2px 0; position:relative; }
+
+#TOC > ul > li > a{
+  display:block; font-family: var(--heading); font-weight:700;
+  font-size:0.82em; letter-spacing:0.05em; text-transform:uppercase;
+  color: var(--ink); border:none; text-decoration:none;
+  padding: 14px 0 6px 0; margin-top:10px; border-top: 1px solid var(--line);
+}
+#TOC > ul > li:first-child > a{ border-top:none; margin-top:0; padding-top:0; }
+#TOC > ul > li[data-part="a"] > a{ color: var(--cyan); }
+#TOC > ul > li[data-part="b"] > a{ color: var(--magenta); }
+#TOC > ul > li[data-part="c"] > a{ color: var(--violet); }
+
+#TOC ul ul a{
+  display:block; font-size:0.87em; color: var(--ink-dim);
+  border:none; text-decoration:none; padding: 5px 0 5px 12px;
+  border-left: 2px solid transparent; transition: all 0.18s ease;
+}
+#TOC ul ul a:hover{ color: var(--ink); border-left-color: var(--ink-dim); }
+#TOC ul ul li.active > a{
+  color: var(--cyan); border-left-color: var(--cyan);
+  text-shadow: 0 0 10px var(--cyan-dim);
+  background: linear-gradient(90deg, rgba(42,240,255,0.08), transparent);
+}
+#TOC > ul > li[data-part="b"] ul ul li.active > a,
+#TOC li[data-part="b"].active > a{ color: var(--magenta); border-left-color: var(--magenta); text-shadow:0 0 10px var(--magenta-dim); }
+#TOC > ul > li[data-part="c"] ul ul li.active > a{ color: var(--violet); border-left-color: var(--violet); text-shadow:0 0 10px var(--violet-dim); }
+
+#TOC-toggle{
+  display:none;
+}
+
+main{ flex:1 1 auto; min-width:0; padding: 60px 68px 140px 68px; }
+
+@media (max-width: 980px){
+  .page{ flex-direction: column; }
+  #TOC{
+    position: fixed; top:0; left:0; height:100vh; z-index: 900;
+    transform: translateX(-102%); transition: transform 0.3s ease;
+    box-shadow: 20px 0 60px rgba(0,0,0,0.6);
+  }
+  #TOC.open{ transform: translateX(0); }
+  main{ padding: 90px 22px 90px 22px; }
+  #TOC-toggle{
+    display:flex; align-items:center; gap:8px;
+    position: fixed; top:14px; left:14px; z-index: 950;
+    background: var(--bg-panel); border:1px solid var(--line-strong);
+    color: var(--cyan); font-family: var(--mono); font-size:0.75em;
+    padding:8px 12px; border-radius:8px; cursor:pointer;
+    box-shadow: 0 0 16px var(--cyan-dim);
+  }
+}
+
+/* ---------- header / hero ---------- */
+header#title-block-header{ max-width:920px; margin: 0 0 4px 0; }
+h1.title{
+  font-family: var(--display); font-weight:800;
+  font-size: clamp(2.1em, 4vw, 3.1em);
+  line-height:1.1; letter-spacing:0.01em; margin:0 0 22px 0;
+  background: linear-gradient(90deg, var(--cyan), var(--violet) 45%, var(--magenta) 85%);
+  background-size: 220% auto;
+  -webkit-background-clip: text; background-clip:text; color: transparent;
+  animation: hue-drift 8s ease-in-out infinite;
+  text-shadow: none;
+}
+@keyframes hue-drift{
+  0%,100%{ background-position: 0% 50%; }
+  50%{ background-position: 100% 50%; }
+}
+.masthead{
+  max-width:920px; color: var(--ink-dim); font-style:italic;
+  padding-bottom: 26px; margin-bottom: 30px; border-bottom: 1px solid var(--line);
+  font-family: var(--heading); font-size: 1.05em;
+}
+
+/* ---------- headings ---------- */
+main > h1, main > h2, main > h3, main > h4{ max-width:920px; }
+
+main > h1{
+  font-family: var(--display); font-weight:800;
+  font-size: 1.7em; letter-spacing:0.06em; text-transform:uppercase;
+  margin-top: 4.4em; margin-bottom: 0.6em;
+  padding-bottom: 0.5em;
+  color: var(--ink);
+}
+main > h1:first-of-type{ margin-top:0; }
+main > h1[data-part="a"]{ color: var(--cyan); }
+main > h1[data-part="b"]{ color: var(--magenta); }
+main > h1[data-part="c"]{ color: var(--violet); }
+
+.circuit-divider{
+  max-width: 920px; height: 22px; margin: 0 0 1.6em 0;
+  overflow: visible;
+}
+.circuit-divider svg{ width:100%; height:100%; display:block; }
+.circuit-divider .base{ stroke: var(--line-strong); stroke-width:1; fill:none; }
+.circuit-divider .flow{
+  stroke-width:2.5; fill:none; stroke-linecap:round;
+  stroke-dasharray: 26 400; animation: flow-run 3.6s linear infinite;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+@keyframes flow-run{ 0%{ stroke-dashoffset: 0; } 100%{ stroke-dashoffset: -426; } }
+
+h2{
+  font-family: var(--heading); font-weight:700; font-size:1.5em;
+  margin-top: 2.6em; margin-bottom:0.7em; color: var(--ink);
+  display:flex; align-items:baseline; gap:12px;
+}
+h2::before{
+  content: "";
+  width: 10px; height:10px; border-radius:2px;
+  background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+  flex: 0 0 auto; transform: translateY(-2px);
+}
+h1[data-part="b"] ~ h2::before, h2[data-part="b"]::before{ background: var(--magenta); box-shadow:0 0 10px var(--magenta); }
+h1[data-part="c"] ~ h2::before, h2[data-part="c"]::before{ background: var(--violet); box-shadow:0 0 10px var(--violet); }
+
+h3{
+  font-family: var(--heading); font-weight:600; font-size:1.14em;
+  margin-top: 2em; margin-bottom:0.5em; color: var(--cyan);
+}
+h4{
+  font-family: var(--heading); font-weight:600; font-size:1em;
+  margin-top:1.6em; margin-bottom:0.4em; color: var(--ink);
+}
+
+/* ---------- body text ---------- */
+p, ul, ol, table, pre, blockquote{ max-width:920px; }
+p{ margin: 1.05em 0; color: var(--ink); }
+p code, li code{ }
+strong{ color: var(--ink); font-weight:600; }
+em{ color: var(--ink-dim); }
+ul, ol{ padding-left:1.5em; }
+li{ margin:0.4em 0; }
+li::marker{ color: var(--cyan-dim); }
+
+a{ color: var(--cyan); text-decoration:none; border-bottom:1px solid var(--cyan-dim); transition: all 0.15s ease; }
+a:hover{ text-shadow: 0 0 8px var(--cyan-dim); border-bottom-color: var(--cyan); }
+
+hr{ border:none; border-top:1px dashed var(--line); margin:3em 0; max-width:920px; }
+
+/* ---------- code ---------- */
+code{
+  font-family: var(--mono); font-size:0.86em;
+  background: rgba(42,240,255,0.08); color: var(--lime);
+  padding: 0.14em 0.4em; border-radius:5px;
+  border: 1px solid rgba(42,240,255,0.14);
+}
+pre{
+  position:relative;
+  background: #070b14; color: #d9e6ff;
+  padding: 30px 24px 22px 24px; border-radius:12px; overflow-x:auto;
+  line-height:1.6; margin: 1.6em 0;
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 0 0 1px rgba(42,240,255,0.05), 0 20px 50px rgba(0,0,0,0.45), inset 0 0 40px rgba(42,240,255,0.02);
+}
+pre::before{
+  content: "● ● ●";
+  position:absolute; top:10px; left:18px;
+  font-size:10px; letter-spacing:4px;
+  color: transparent;
+  background: linear-gradient(90deg, var(--magenta), var(--amber), var(--cyan));
+  -webkit-background-clip:text; background-clip:text;
+  opacity:0.85;
+}
+pre code{ background:none; border:none; color:inherit; padding:0; font-size:0.86em; }
+
+/* ---------- blockquote (key insight) ---------- */
+blockquote{
+  margin: 1.7em 0; padding: 1em 1.5em; border-radius: 4px 12px 12px 4px;
+  border-left: 3px solid var(--violet);
+  background: linear-gradient(90deg, rgba(164,91,255,0.10), rgba(164,91,255,0.02));
+  color: var(--ink);
+  position: relative;
+}
+blockquote::before{
+  content: "⚡ KEY MECHANISM";
+  display:block; font-family:var(--mono); font-size:0.68em;
+  letter-spacing:0.16em; color: var(--violet); margin-bottom:8px;
+}
+
+/* ---------- tables ---------- */
+table{ border-collapse:separate; border-spacing:0; width:100%; margin:1.8em 0; font-size:0.92em;
+  border:1px solid var(--line-strong); border-radius:10px; overflow:hidden; }
+th, td{ border-bottom:1px solid var(--line); padding: 12px 16px; text-align:left; vertical-align:top; }
+th{
+  font-family: var(--heading); font-weight:700; letter-spacing:0.02em;
+  background: linear-gradient(180deg, rgba(42,240,255,0.10), rgba(42,240,255,0.02));
+  color: var(--cyan); border-bottom: 1px solid var(--cyan-dim);
+}
+tr:last-child td{ border-bottom:none; }
+tr:hover td{ background: rgba(140,170,230,0.04); }
+
+/* ---------- task lists / checklists ---------- */
+ul.task-list{ list-style:none; padding-left:0.2em; }
+ul.task-list li{ display:flex; align-items:flex-start; gap:10px; }
+ul.task-list li label{ display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+ul.task-list input[type="checkbox"]{
+  appearance:none; -webkit-appearance:none;
+  width:18px; height:18px; margin-top:0.2em; flex:0 0 auto;
+  border:1.5px solid var(--ink-faint); border-radius:4px;
+  background: rgba(255,255,255,0.02); cursor:pointer;
+  position:relative; transition: all 0.15s ease;
+}
+ul.task-list input[type="checkbox"]:hover{ border-color: var(--cyan); }
+ul.task-list input[type="checkbox"]:checked{
+  border-color: var(--cyan); background: rgba(42,240,255,0.12);
+  box-shadow: 0 0 10px var(--cyan-dim);
+}
+ul.task-list input[type="checkbox"]:checked::after{
+  content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color: var(--cyan); font-size:12px; font-weight:bold;
+}
+ul.task-list li:has(input:checked) label{ color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--ink-faint); }
+
+/* ---------- special cards (Goal / Mental model / Checkpoint / Link) ---------- */
+.card{
+  max-width:920px; margin: 1.6em 0; padding: 18px 22px;
+  border-radius:10px; border:1px solid var(--line);
+  background: var(--bg-panel);
+  opacity: 0; transform: translateY(14px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.card.in-view{ opacity:1; transform:none; }
+.card h3{ margin-top:0; margin-bottom:0.6em; font-size:0.78em; letter-spacing:0.18em;
+  text-transform:uppercase; font-family: var(--mono); display:flex; align-items:center; gap:8px; }
+.card > *:last-child{ margin-bottom:0; }
+
+.card--goal{ border-left:3px solid var(--lime); }
+.card--goal h3{ color: var(--lime); }
+.card--goal h3::before{ content:"◎"; }
+
+.card--core{ background: transparent; border:none; padding-left:0; }
+
+.card--mental{ border-left:3px solid var(--amber); background: linear-gradient(90deg, rgba(255,176,32,0.08), transparent); }
+.card--mental h3{ color: var(--amber); }
+.card--mental h3::before{ content:"◈"; }
+
+.card--checkpoint{ border-left:3px solid var(--cyan); background: linear-gradient(90deg, rgba(42,240,255,0.07), transparent); }
+.card--checkpoint h3{ color: var(--cyan); }
+.card--checkpoint h3::before{ content:"?"; font-family: var(--heading); font-weight:800; }
+
+.card--link{ border-left:3px solid var(--magenta); background: linear-gradient(90deg, rgba(255,62,200,0.07), transparent); }
+.card--link h3{ color: var(--magenta); }
+.card--link h3::before{ content:"⇢"; }
+
+/* ---------- scroll reveal for headings/sections ---------- */
+.reveal{ opacity:0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.in-view{ opacity:1; transform:none; }
+
+/* ---------- footer ---------- */
+footer.doc-footer{
+  max-width:920px; margin-top:5em; padding-top:1.6em; border-top:1px solid var(--line);
+  color: var(--ink-faint); font-size:0.85em; font-family: var(--mono);
+}
+
+::selection{ background: rgba(42,240,255,0.25); color: #fff; }
+
+@media print{
+  .circuit-bg, .vignette, #progress-bar, #TOC, #TOC-toggle{ display:none !important; }
+  main{ padding:0; }
+  body{ background:#fff; color:#000; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="circuit-bg" aria-hidden="true">
+<svg viewBox="0 0 1600 1200" preserveAspectRatio="xMidYMid slice">
+  <path class="trace" d="M0,140 H420 V300 H900 V80 H1600"/>
+  <path class="trace alt" d="M0,520 H260 V680 H760 V420 H1300 V620 H1600"/>
+  <path class="trace" d="M0,860 H500 V1000 H1050 V760 H1600"/>
+  <path class="trace alt" d="M120,0 V220 H0"/>
+  <path class="trace" d="M1450,0 V180 H1600"/>
+  <path class="trace alt" d="M900,1200 V980 H1600"/>
+  <path class="pulse c1" d="M0,140 H420 V300 H900 V80 H1600"/>
+  <path class="pulse c2" d="M0,520 H260 V680 H760 V420 H1300 V620 H1600"/>
+  <path class="pulse c3" d="M0,860 H500 V1000 H1050 V760 H1600"/>
+  <circle class="node" cx="420" cy="140" r="4"/>
+  <circle class="node n2" cx="900" cy="300" r="4"/>
+  <circle class="node n3" cx="1300" cy="620" r="4"/>
+  <circle class="node" cx="260" cy="520" r="4"/>
+  <circle class="node n2" cx="760" cy="680" r="4"/>
+  <circle class="node n3" cx="500" cy="860" r="4"/>
+  <circle class="node" cx="1050" cy="1000" r="4"/>
+</svg>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+
+<div id="progress-bar"></div>
+<button id="TOC-toggle" aria-label="Toggle table of contents">&#9776; Contents</button>
+<div class="page">
+<nav id="TOC" role="doc-toc">
+<p id="TOC-label">Contents</p>
+<div id="TOC-progress"><span id="TOC-progress-label">0%</span><span class="bar"><span></span></span><button id="TOC-reset" title="Reset checklist progress">reset</button></div>
+
+<ul>
+<li><a href="#call-me-maybe-master-course"
+id="toc-call-me-maybe-master-course">CALL ME MAYBE — Master Course</a>
+<ul>
+<li><a href="#how-to-use-this-document"
+id="toc-how-to-use-this-document">How to use this document</a></li>
+</ul></li>
+<li><a href="#part-a-theoretical-foundations"
+id="toc-part-a-theoretical-foundations">PART A — THEORETICAL
+FOUNDATIONS</a>
+<ul>
+<li><a href="#phase-1-what-actually-is-a-large-language-model"
+id="toc-phase-1-what-actually-is-a-large-language-model">PHASE 1 — What
+actually <em>is</em> a Large Language Model?</a></li>
+<li><a href="#phase-2-tokens-tokenization-and-vocabulary"
+id="toc-phase-2-tokens-tokenization-and-vocabulary">PHASE 2 — Tokens,
+Tokenization, and Vocabulary</a></li>
+<li><a href="#phase-3-logits-probability-and-token-selection"
+id="toc-phase-3-logits-probability-and-token-selection">PHASE 3 —
+Logits, Probability, and Token Selection</a></li>
+<li><a href="#phase-4-function-calling-as-a-concept"
+id="toc-phase-4-function-calling-as-a-concept">PHASE 4 — Function
+Calling as a Concept</a></li>
+<li><a href="#phase-5-structured-output-schemas-and-json-as-a-grammar"
+id="toc-phase-5-structured-output-schemas-and-json-as-a-grammar">PHASE 5
+— Structured Output, Schemas, and JSON as a Grammar</a></li>
+<li><a href="#phase-6-constrained-decoding-end-to-end"
+id="toc-phase-6-constrained-decoding-end-to-end">PHASE 6 — Constrained
+Decoding, End to End</a></li>
+<li><a
+href="#phase-7-the-wider-landscape-context-so-youre-not-learning-in-a-vacuum"
+id="toc-phase-7-the-wider-landscape-context-so-youre-not-learning-in-a-vacuum">PHASE
+7 — The Wider Landscape (context, so you’re not learning in a
+vacuum)</a></li>
+</ul></li>
+<li><a href="#part-b-project-analysis"
+id="toc-part-b-project-analysis">PART B — PROJECT ANALYSIS</a>
+<ul>
+<li><a href="#phase-8-meticulous-requirement-breakdown"
+id="toc-phase-8-meticulous-requirement-breakdown">PHASE 8 — Meticulous
+Requirement Breakdown</a></li>
+<li><a href="#phase-9-scope-definition-mvp-vs.-full-vs.-bonus"
+id="toc-phase-9-scope-definition-mvp-vs.-full-vs.-bonus">PHASE 9 — Scope
+Definition (MVP vs. Full vs. Bonus)</a></li>
+</ul></li>
+<li><a href="#part-c-architecture-structure"
+id="toc-part-c-architecture-structure">PART C — ARCHITECTURE &amp;
+STRUCTURE</a>
+<ul>
+<li><a
+href="#phase-10-system-architecture-components-and-responsibilities"
+id="toc-phase-10-system-architecture-components-and-responsibilities">PHASE
+10 — System Architecture: Components and Responsibilities</a></li>
+<li><a
+href="#phase-11-data-models-pydantic-contracts-specified-not-coded"
+id="toc-phase-11-data-models-pydantic-contracts-specified-not-coded">PHASE
+11 — Data Models (Pydantic Contracts, Specified Not Coded)</a></li>
+<li><a href="#phase-12-task-breakdown-suggested-build-order"
+id="toc-phase-12-task-breakdown-suggested-build-order">PHASE 12 — Task
+Breakdown &amp; Suggested Build Order</a></li>
+<li><a href="#phase-13-testing-validation-strategy"
+id="toc-phase-13-testing-validation-strategy">PHASE 13 — Testing &amp;
+Validation Strategy</a></li>
+<li><a href="#phase-14-readme-submission-readiness"
+id="toc-phase-14-readme-submission-readiness">PHASE 14 — README &amp;
+Submission Readiness</a></li>
+</ul></li>
+<li><a href="#closing-note" id="toc-closing-note">Closing note</a></li>
+</ul>
+</nav>
+<main>
+<header id="title-block-header">
+<h1 class="title">Call Me Maybe ��� Function Calling Master Course</h1>
+</header>
+<p class="masthead">A progressive, phase-by-phase curriculum &mdash; theory first, architecture second, implementation left to you.</p>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Call Me Maybe ��� Function Calling Master Course</title>
+  
+</head>
+<body>
+
+
+<h1 id="call-me-maybe-master-course">CALL ME MAYBE — Master Course</h1>
+<h3
+id="from-i-know-nothing-about-ai-to-i-can-architect-a-constrained-decoding-function-calling-engine">From
+“I know nothing about AI” to “I can architect a constrained-decoding
+function-calling engine”</h3>
+<hr />
+<h2 id="how-to-use-this-document">How to use this document</h2>
+<p>This is not a summary of the subject. It is a
+<strong>curriculum</strong>. Each phase builds on the previous one. Do
+not skip a phase even if it looks “too basic” — the project’s core
+difficulty (constrained decoding) is 100% built out of the fundamentals
+in Phases 1–4. Students who jump straight to “how do I mask logits”
+almost always fail because they never understood <em>why</em> logits
+need masking in the first place.</p>
+<p>Structure of every phase: - <strong>Goal</strong> — what you should
+be able to explain/do by the end - <strong>Core content</strong> — the
+theory itself - <strong>Mental model / analogy</strong> — a way to hold
+the idea in your head - <strong>Checkpoint questions</strong> — answer
+these before moving on - <strong>Link to the project</strong> — how this
+specific piece of knowledge will resurface later</p>
+<p>You asked me not to implement anything. I won’t. Every phase from
+Phase 8 onward gives you <strong>specifications, contracts, and
+checklists</strong> — never code. The actual writing of Python is
+entirely yours.</p>
+<hr />
+<h1 id="part-a-theoretical-foundations">PART A — THEORETICAL
+FOUNDATIONS</h1>
+<hr />
+<h2 id="phase-1-what-actually-is-a-large-language-model">PHASE 1 — What
+actually <em>is</em> a Large Language Model?</h2>
+<h3 id="goal">Goal</h3>
+<p>Be able to explain, without hand-waving, what happens when you type a
+prompt and get text back — at the conceptual level, no math required
+yet.</p>
+<h3 id="core-content">Core content</h3>
+<p><strong>1.1 — A model is a function, not a brain.</strong> Strip away
+the mysticism: an LLM is a mathematical function
+<code>f(input) → output</code>. The “input” is numbers, the “output” is
+numbers. Everything else (chat UI, personality, “understanding”) is
+scaffolding built around this function.</p>
+<p><strong>1.2 — Parameters = the function’s dials.</strong> A model has
+billions (or, for your project, ~500 million — “0.6B” is the
+<em>nominal</em> size class, Qwen3-0.6B) of tunable numbers called
+<strong>weights</strong> or <strong>parameters</strong>. Training is the
+(very expensive, done once, by someone else) process of tuning these
+dials so that <code>f(input)</code> tends to produce useful output. You
+will never train anything in this project — you only ever <em>run</em>
+(this is called <strong>inference</strong>) an already-trained
+model.</p>
+<p><strong>1.3 — Training vs. Inference.</strong> | | Training |
+Inference | |—|—|—| | What happens | Weights are adjusted based on data
+| Weights are frozen, used to compute an output | | Cost | Extremely
+expensive, done by a lab | Cheap-ish, done by you, on your machine | |
+What you do in this project | Nothing | Everything |</p>
+<p><strong>1.4 — Why “Large”?</strong> “Large” refers to parameter count
+and training data size. Larger models generalize better but are slower
+and heavier. Your project deliberately uses a <em>small</em> model (0.6B
+parameters — tiny by industry standards, GPT-class models are 10–1000x
+bigger) specifically because small models are unreliable at structured
+output, which is the whole pedagogical point: you’re not compensating
+with a bigger model, you’re compensating with <strong>better decoding
+engineering</strong>.</p>
+<p><strong>1.5 — What “generating text” really means.</strong> An LLM
+does not generate a sentence in one shot. It generates <strong>one small
+unit at a time</strong>, feeds that unit back into itself, and repeats.
+This is called <strong>autoregressive generation</strong>. This single
+fact is the seed of everything in Phase 3 and Phase 6.</p>
+<h3 id="mental-model">Mental model</h3>
+<p>Think of the LLM as a <em>very fast, very well-read autocomplete
+engine</em> that has no memory beyond what’s literally in front of it
+(the prompt + everything generated so far), and that outputs one
+puzzle-piece at a time, always asking “given everything so far, what’s
+statistically the best next piece?”</p>
+<h3 id="checkpoint-questions">Checkpoint questions</h3>
+<ul>
+<li>What’s the difference between a parameter and an input?</li>
+<li>Why does the project deliberately choose a <em>weak</em> model
+instead of a strong one?</li>
+<li>True or false: the model “decides” a full sentence before writing
+it. (False — see Phase 3.)</li>
+</ul>
+<h3 id="link-to-the-project">Link to the project</h3>
+<p>The entire “Challenge” (subject §III.3) exists <em>because</em> of
+this phase: small models are bad at structured generation precisely
+because each “puzzle piece” (token) is chosen somewhat unreliably, and
+errors compound over a sequence.</p>
+<hr />
+<h2 id="phase-2-tokens-tokenization-and-vocabulary">PHASE 2 — Tokens,
+Tokenization, and Vocabulary</h2>
+<h3 id="goal-1">Goal</h3>
+<p>Understand what a “token” is, why models don’t operate on letters or
+words directly, and why this matters enormously for constrained decoding
+later.</p>
+<h3 id="core-content-1">Core content</h3>
+<p><strong>2.1 — Computers (and models) don’t read text, they read
+numbers.</strong> Before any text reaches the model, it is chopped into
+chunks called <strong>tokens</strong>, and each token is mapped to an
+integer ID. This mapping is called the <strong>vocabulary</strong>.</p>
+<p><strong>2.2 — Tokens are not words.</strong> This is the single most
+important mental correction for beginners. A tokenizer might split:</p>
+<pre><code>&quot;What is the sum of 2 and 3?&quot;</code></pre>
+<p>into something like:</p>
+<pre><code>[&quot;What&quot;, &quot; is&quot;, &quot; the&quot;, &quot; sum&quot;, &quot; of&quot;, &quot; 2&quot;, &quot; and&quot;, &quot; 3&quot;, &quot;?&quot;]</code></pre>
+<p>Notice: - Some tokens include a <strong>leading space</strong>
+(commonly marked with a special symbol like <code>Ġ</code> in BPE-based
+tokenizers, or <code>▁</code> in SentencePiece-based ones). This lets
+the tokenizer reconstruct spacing exactly when decoding back to text. -
+Punctuation is often its own token. - Numbers can be split in surprising
+ways — <code>"345"</code> might be one token, or might be split into
+<code>"3"</code> + <code>"45"</code>, or <code>"34"</code> +
+<code>"5"</code>, depending on the tokenizer’s training data.
+<strong>This is critical for your project</strong> — see the warning box
+below. - The exact same character sequence can tokenize differently
+depending on context (e.g., a word at the start of a sentence
+vs. mid-sentence).</p>
+<p><strong>2.3 — The vocabulary file.</strong> A tokenizer’s vocabulary
+is a fixed, finite list — typically tens of thousands of entries —
+mapping every possible token <em>string</em> to a token <em>ID</em> (and
+back). This file is not a mystery box: it’s literally a lookup table you
+can open and read. The <code>llm_sdk</code> SDK gives you
+<code>get_path_to_vocab_file()</code> for exactly this reason.</p>
+<p><strong>2.4 — Encoding and decoding.</strong> -
+<strong>Encode</strong>: text → list of token IDs (what you feed the
+model) - <strong>Decode</strong>: list of token IDs → text (what you
+show a human)</p>
+<p><strong>2.5 — Why tokenization is the crux of constrained
+decoding.</strong> Constrained decoding works by deciding, at each
+generation step, <em>which token IDs are currently legal</em>. To do
+that, you must be able to answer: “if I appended this candidate token’s
+<em>string</em> to what I’ve generated so far, would the result still be
+progressing toward valid JSON that matches my schema?” That means you
+need to reason about the <strong>string representation of every token in
+the vocabulary</strong>, not just abstract IDs. This is why
+understanding the vocabulary file (Phase 2.3) is non-negotiable before
+touching Phase 6.</p>
+<h3 id="important-trap-to-understand-now-not-later">⚠ Important trap to
+understand now (not later)</h3>
+<p>Because numbers can be split across multiple tokens in non-obvious
+ways, and because “quote”, “colon”, “comma”, “brace” might each be their
+own token or might be fused with neighboring characters, you cannot
+assume “one token = one JSON character” or “one token = one digit.” Your
+constrained decoder has to work at the <em>string</em> level, testing
+each candidate token by simulating what the text would look like if that
+token were appended — not by assuming a clean 1:1 correspondence with
+JSON syntax.</p>
+<h3 id="mental-model-1">Mental model</h3>
+<p>Think of the vocabulary as a giant multiple-choice answer sheet. At
+every step, the model doesn’t “type a letter” — it picks one bubble out
+of ~30,000–150,000 pre-printed possible chunks of text. Your job in
+constrained decoding is to <em>cover up</em> the bubbles that would
+produce garbage, before the model gets to pick.</p>
+<h3 id="checkpoint-questions-1">Checkpoint questions</h3>
+<ul>
+<li>Why can’t you assume a digit always corresponds to exactly one
+token?</li>
+<li>What two SDK methods will you need to inspect the vocabulary and its
+mapping to IDs?</li>
+<li>If token <code>" the"</code> (with leading space) exists, what does
+the leading-space marker tell you about reconstructing the original
+text?</li>
+</ul>
+<h3 id="link-to-the-project-1">Link to the project</h3>
+<p>Subject §V.3.1 gives you <code>get_path_to_vocab_file()</code>
+precisely so you can build this token-string ↔︎ token-ID mapping
+yourself. Subject §V.3.3’s info box (“Think about how you can use the
+vocabulary JSON file…”) is pointing directly at this phase.</p>
+<hr />
+<h2 id="phase-3-logits-probability-and-token-selection">PHASE 3 —
+Logits, Probability, and Token Selection</h2>
+<h3 id="goal-2">Goal</h3>
+<p>Understand what a logit is, how a token gets chosen, and how you can
+<em>intervene</em> in that choice — which is the literal mechanism of
+constrained decoding.</p>
+<h3 id="core-content-2">Core content</h3>
+<p><strong>3.1 — What is a logit?</strong> After processing the input
+token IDs, the model doesn’t directly output “the next token.” It
+outputs <strong>one raw score (a “logit”) for every single entry in the
+vocabulary</strong>. If the vocabulary has 150,000 entries, the model
+produces 150,000 numbers, one per possible next token. Higher = the
+model thinks this token is more likely to come next.</p>
+<p><strong>3.2 — From logits to probabilities: softmax.</strong> Logits
+are raw, unbounded numbers (can be negative, can be huge). To turn them
+into a proper probability distribution (all values between 0 and 1,
+summing to 1), you apply the <strong>softmax function</strong>. You
+don’t need to derive softmax by hand for this project, but you must
+understand conceptually: softmax preserves <em>relative ordering</em> —
+the highest logit becomes the highest probability. This matters because
+of 3.4 below.</p>
+<p><strong>3.3 — Selection strategies (how the “winning” token is
+picked).</strong> - <strong>Greedy decoding</strong>: always pick the
+single highest-probability token. Deterministic, can be repetitive. -
+<strong>Sampling</strong> (temperature, top-k, top-p / nucleus
+sampling): introduce controlled randomness by sampling from the
+(adjusted) distribution instead of always taking the max. Used for
+creative, varied text. - For <strong>this project</strong>, once you
+apply constraints (Phase 6), you will typically want deterministic or
+near-deterministic selection <em>among the valid tokens</em> —
+creativity is not the goal, correctness is.</p>
+<p><strong>3.4 — The critical trick: you can edit logits before
+selection.</strong> This is the single mechanical fact that makes the
+entire project possible:</p>
+<blockquote>
+<p>Nothing stops you from taking the raw logits array, and
+<strong>setting the logit of any token you consider “invalid” to
+negative infinity</strong> (or some very large negative number),
+<em>before</em> applying softmax/selection.</p>
+</blockquote>
+<p>Once a logit is <code>-inf</code>, softmax will assign that token a
+probability of essentially zero. It becomes mathematically impossible
+for the decoding process to pick it — not “unlikely,”
+<em>impossible</em>. This is not a hack; it is the standard,
+industry-recognized technique called <strong>constrained
+decoding</strong> or <strong>guided generation</strong>, and it’s
+exactly what production systems (OpenAI function calling, Anthropic tool
+use, open-source libraries like <code>outlines</code> or
+<code>guidance</code>) do internally — except you are forbidden from
+using those libraries (§IV.3.1) precisely so you build the mechanism
+yourself and truly understand it.</p>
+<p><strong>3.5 — The generation loop, precisely.</strong> Subject §V.3.2
+gives you this loop; here it is annotated:</p>
+<pre><code>1. Prompt (text)
+2. Tokenize → list of tokens (strings)
+3. Encode → list of token IDs (integers)
+4. Feed IDs into the model → get_logits_from_input_ids()
+5. Get logits (one score per vocab entry)
+   ↳ [YOUR INTERVENTION HAPPENS HERE — Phase 6]
+6. Select next token ID (argmax, or sampling, over the surviving/valid logits)
+7. Append the new token ID to the sequence
+8. Repeat from step 4, using the *extended* sequence as input
+   ... until a stop condition is met (e.g., you&#39;ve completed valid JSON,
+       or hit a max length, or generated an end-of-sequence token)</code></pre>
+<p>Every single token in your output is produced by running this
+<em>entire</em> loop again — the model has no “memory” of having thought
+about the whole sentence in advance; it is re-deriving its next-token
+guess from scratch (well, using cached computation internally, but
+conceptually) every single step.</p>
+<h3 id="mental-model-2">Mental model</h3>
+<p>Imagine a game show where a contestant (the model) is shown a partial
+sentence and must guess the next word from a giant list of flashcards
+(the vocabulary), each with a “confidence score” (logit) pre-assigned.
+You, the game show host, are allowed to <strong>physically remove
+flashcards from the table</strong> before the contestant picks — the
+contestant can only choose from what remains. That’s constrained
+decoding. The contestant never knows cards were removed; it just picks
+the best of what’s left.</p>
+<h3 id="checkpoint-questions-2">Checkpoint questions</h3>
+<ul>
+<li>What is the difference between a logit and a probability?</li>
+<li>Why does setting a logit to <code>-infinity</code> guarantee a token
+cannot be chosen (rather than just making it “less likely”)?</li>
+<li>Why is greedy decoding usually preferred over creative sampling for
+this specific project’s goal?</li>
+</ul>
+<h3 id="link-to-the-project-2">Link to the project</h3>
+<p>This <em>is</em> the mechanism behind
+<code>get_logits_from_input_ids()</code>. The whole engineering task in
+§V.3.3 boils down to: “at every step of this loop, compute a mask over
+the vocabulary, and apply it to the logits before selecting a
+token.”</p>
+<hr />
+<h2 id="phase-4-function-calling-as-a-concept">PHASE 4 — Function
+Calling as a Concept</h2>
+<h3 id="goal-3">Goal</h3>
+<p>Understand what “function calling” means at the LLM level, why it’s
+not the same as “the LLM does math,” and what problem it actually
+solves.</p>
+<h3 id="core-content-3">Core content</h3>
+<p><strong>4.1 — The core insight (subject §III.1).</strong> An LLM
+asked “What is the sum of 40 and 2?” does not compute — it
+<em>pattern-matches against text it has seen</em> and, if you’re lucky,
+produces <code>"42"</code> as plausible-looking text. It has no
+calculator, no database access, no real “execution” capability by
+itself. Function calling doesn’t ask the LLM to solve the problem. It
+asks the LLM to <strong>translate a natural-language intent into a
+precise, executable instruction</strong> — a function name plus
+correctly-typed arguments — which <em>something else</em> (your program,
+a real calculator function, an API, a database) will then actually
+execute.</p>
+<p><strong>4.2 — The division of labor.</strong></p>
+<pre><code>Natural language  →  [LLM: intent recognition + argument extraction]  →  Structured call
+Structured call   →  [Your program / a real function]                  →  Actual execution</code></pre>
+<p>The LLM never touches the real answer. It only ever decides <em>which
+tool</em> and <em>with what typed inputs</em>. This is why your
+project’s output format (§V.4) is exactly
+<code>{prompt, name, parameters}</code> and <strong>never</strong> a
+computed result.</p>
+<p><strong>4.3 — Why this generalizes far beyond calculators.</strong>
+Subject §III.2 lists real uses: calling APIs, querying databases,
+controlling devices, chaining multi-step tasks, and — importantly for
+you to understand the “why” — <strong>extracting structured data from
+unstructured text</strong> (e.g., pulling
+<code>{protagonist_name, protagonist_sex, protagonist_age}</code> out of
+a novel). Function calling and “structured extraction” are the same
+underlying mechanism: forcing free text into a fixed schema.</p>
+<p><strong>4.4 — The reliability problem (subject §III.3), restated
+precisely.</strong> If you <em>ask nicely</em> (“please respond only in
+JSON matching this schema”), a small model will frequently: - add prose
+before/after the JSON (“Sure! Here’s the JSON: {…}”) - produce
+syntactically broken JSON (missing braces, trailing commas) - invent a
+function name that doesn’t exist - put a string where a number was
+required - omit required fields</p>
+<p>None of this is a “bug” you can prompt your way out of reliably at
+0.6B parameters. Subject explicitly forbids this approach: <em>“Your
+solution must NOT rely on the model spontaneously producing correct JSON
+from a prompt.”</em> The fix isn’t a better prompt — it’s controlling
+the <em>generation mechanism itself</em>, which is exactly Phase 3.4’s
+technique, applied with a JSON grammar and a function schema. That’s
+Phase 5 and 6.</p>
+<p><strong>4.5 — Two separate sub-problems inside “function
+calling.”</strong> It helps to mentally split the task into two
+independently-reasoned-about problems: 1. <strong>Function
+selection</strong>: given N available functions and a prompt, which one
+is the <em>right</em> one? (A classification-like decision the LLM must
+make.) 2. <strong>Argument extraction &amp; typing</strong>: given the
+chosen function’s schema, pull the correct values out of the prompt and
+coerce them to the correct type (number vs. string vs. boolean,
+etc.)</p>
+<p>Both sub-problems need the LLM’s language understanding. Both
+sub-problems need constrained decoding to guarantee the <em>output
+format</em> is trustworthy regardless of whether the <em>content</em> is
+correct.</p>
+<h3 id="mental-model-3">Mental model</h3>
+<p>Function calling turns the LLM into a <strong>very well-read but very
+literal receptionist</strong>: it doesn’t perform surgery, cook your
+meal, or do your taxes — it listens to what you want and correctly fills
+out the right request form, with the right fields, in the right format,
+and hands it to someone (or something) that actually does the work.</p>
+<h3 id="checkpoint-questions-3">Checkpoint questions</h3>
+<ul>
+<li>Why does the LLM never produce <code>42</code> as the final answer
+in this project?</li>
+<li>Name the two sub-problems bundled inside “function calling.”</li>
+<li>Why is “just prompt it better” explicitly rejected as a solution
+strategy?</li>
+</ul>
+<h3 id="link-to-the-project-3">Link to the project</h3>
+<p>This phase <em>is</em> the conceptual justification for the entire
+<code>fn_add_numbers</code> example walked through in §III.1 and §V.1,
+and for the output schema fixed in §V.4.</p>
+<hr />
+<h2 id="phase-5-structured-output-schemas-and-json-as-a-grammar">PHASE 5
+— Structured Output, Schemas, and JSON as a Grammar</h2>
+<h3 id="goal-4">Goal</h3>
+<p>Understand JSON not as “a text format” but as a <strong>formal
+grammar</strong> — a strict set of rules about what character can
+legally follow what — because that reframing is what makes constrained
+decoding tractable.</p>
+<h3 id="core-content-4">Core content</h3>
+<p><strong>5.1 — JSON has a grammar, just like a programming
+language.</strong> JSON’s full grammar is officially specified (see RFC
+8259). You don’t need to memorize it, but you need the mental shift: at
+<em>any</em> point while writing valid JSON, only a <strong>finite,
+well-defined set of next characters</strong> is legal. For example: -
+Right after <code>{</code>, legal next non-whitespace characters are:
+<code>"</code> (start of a key) or <code>}</code> (empty object). -
+Right after a closing <code>"</code> of a key, the only legal next
+non-whitespace character is <code>:</code>. - Right after
+<code>:</code>, legal next characters depend on the expected <em>value
+type</em>: <code>"</code> for a string, a digit or <code>-</code> for a
+number, <code>t</code>/<code>f</code> for
+<code>true</code>/<code>false</code>, <code>[</code> for an array,
+<code>{</code> for a nested object, <code>n</code> for
+<code>null</code>. - Inside a string, almost anything is legal except an
+unescaped <code>"</code> (which closes the string) or unescaped control
+characters.</p>
+<p>This “at every position, only some next characters are legal”
+property is exactly what a <strong>finite state machine (FSM)</strong>
+or <strong>pushdown automaton</strong> models. You do not need to build
+a formal FSM library — but you should recognize that your “am I still on
+track for valid JSON?” logic is essentially you hand-rolling a state
+tracker.</p>
+<p><strong>5.2 — Structure validity vs. schema validity — two different
+constraints, both required.</strong> The subject is explicit about this
+distinction (§V.3.3): your decoder must enforce <strong>both</strong>:
+1. <strong>Syntactic JSON validity</strong> — braces balanced, commas in
+the right places, strings properly quoted, etc. (This alone would let a
+model produce
+<code>{"name": "banana", "parameters": {"x": "yes"}}</code> —
+syntactically perfect, but useless.) 2. <strong>Schema
+compliance</strong> — the object must specifically match one of the
+functions defined in <code>functions_definition.json</code>: the right
+key names, and each value must match its declared <code>type</code>
+(<code>number</code>, <code>string</code>, <code>boolean</code>, etc.) —
+not just “any valid JSON value.”</p>
+<p><strong>5.3 — What a “schema” is, concretely, for this
+project.</strong> Look again at <code>functions_definition.json</code>
+(§V.2): each function is described by a <code>name</code>, a
+<code>description</code> (for the LLM to read to choose the right
+function — this text is <em>input</em> to your function-selection
+prompt), a <code>parameters</code> object (each parameter name mapped to
+a <code>type</code>), and a <code>returns</code> type (irrelevant to
+your output, but part of the definition). This is conceptually identical
+to <strong>JSON Schema</strong> — a machine-readable description of what
+a valid JSON object must look like. You are, in effect, building a mini
+JSON-Schema-constrained JSON generator from scratch.</p>
+<p><strong>5.4 — Type coercion.</strong> “Number” in JSON doesn’t
+distinguish int vs. float — but your subject’s example output (§V.4.1)
+shows <code>"a": 2.0, "b": 3.0</code> — floats, even though the prompt
+said whole numbers 2 and 3. This tells you the <em>target
+representation</em> for <code>"number"</code> in this project is a JSON
+floating-point-compatible token sequence (digits, optional
+<code>.</code>, optional exponent) — not necessarily “must always
+contain a decimal point,” but your grammar for the <code>number</code>
+type must be broad enough to accept how the model naturally continues
+digit sequences, while never producing something invalid like
+<code>"1.2.3"</code> or <code>"1,000"</code>.</p>
+<h3 id="mental-model-4">Mental model</h3>
+<p>Think of writing valid+schema-compliant JSON like filling out a
+government form with a strict grid layout: at box #4 you are
+<em>only</em> allowed to write a number, at box #7 you’re only allowed a
+checkbox mark. A constrained decoder is a strict clerk standing over the
+applicant’s shoulder, physically blocking the pen from touching any part
+of the form except the currently-legal region, and only allowing
+legal-for-that-field symbols even within the region.</p>
+<h3 id="checkpoint-questions-4">Checkpoint questions</h3>
+<ul>
+<li>What’s the difference between “syntactically valid JSON” and
+“schema-compliant JSON”? Give an example of a string that is the former
+but not the latter.</li>
+<li>Why is thinking of JSON as a “grammar with states” more useful than
+thinking of it as “just a text format” when you’re about to build a
+constrained decoder?</li>
+<li>Where in your project does the <em>description</em> field of a
+function definition get used, and why is it different in purpose from
+the <em>parameters</em> field?</li>
+</ul>
+<h3 id="link-to-the-project-4">Link to the project</h3>
+<p>This is the direct theoretical backbone of §V.3.3 and §V.4.2
+(“Validation Rules”).</p>
+<hr />
+<h2 id="phase-6-constrained-decoding-end-to-end">PHASE 6 — Constrained
+Decoding, End to End</h2>
+<h3 id="goal-5">Goal</h3>
+<p>Assemble Phases 1–5 into the complete conceptual algorithm you’ll
+eventually implement. This is the theoretical heart of the mandatory
+part. By the end of this phase you should be able to <em>narrate</em>,
+step by step, in plain English, exactly what your program will do —
+without writing a line of code.</p>
+<h3 id="core-content-5">Core content</h3>
+<p><strong>6.1 — The algorithm, narrated.</strong></p>
+<p>At a high level, generation of one JSON output proceeds like
+this:</p>
+<ol type="1">
+<li><strong>Establish the target schema</strong> for the current step.
+Before you generate a single token, you must know: “am I currently
+expected to write a <code>{</code>? a key name? a colon? a value of type
+X? a comma-or-closing-brace?” This running notion of “where am I in the
+grammar, and what’s legal next” is your <strong>decoding
+state</strong>.</li>
+<li><strong>Ask the model for logits</strong> given everything generated
+so far (<code>get_logits_from_input_ids</code>).</li>
+<li><strong>Build the set of allowed next tokens</strong>, given the
+current decoding state. This is the hard part, and it decomposes into
+two checks per candidate token:
+<ul>
+<li><em>Structural check</em>: if I append this token’s string to the
+output-so-far, does the result remain a valid <strong>prefix</strong> of
+some completable JSON string? (Not necessarily complete yet — but not
+yet broken either.)</li>
+<li><em>Schema check</em>: does this token’s string keep me within the
+value-space allowed for the current field (e.g., only
+digits/<code>.</code>/<code>-</code> while inside a <code>number</code>
+value; only characters that keep a <code>string</code> value literal;
+only the exact remaining characters of a legal key name when I’m about
+to write a key)? Practically, this means: for every token ID in the
+vocabulary, decode it to its string form, simulate appending it, and
+test both checks. (You will want to be smart about <em>not</em>
+brute-forcing all ~100k+ tokens naively every single step for
+performance — see §V.5 and Phase 9’s performance notes — but
+conceptually, this is the check being performed.)</li>
+</ul></li>
+<li><strong>Mask the logits</strong>: for every token that fails either
+check, set its logit to negative infinity (Phase 3.4).</li>
+<li><strong>Select</strong> the next token from the <em>surviving</em>
+logits (typically argmax/greedy, since you want reliability, not
+creative variety).</li>
+<li><strong>Append</strong> the chosen token, <strong>advance your
+decoding state</strong> (e.g., if you just closed a string value that
+matched a known-required key, you know a comma-or-brace comes
+next).</li>
+<li><strong>Repeat</strong> until the JSON object is structurally and
+semantically complete (you’ve closed the outermost <code>}</code> and
+satisfied all required keys).</li>
+</ol>
+<p><strong>6.2 — Function selection happens <em>before or as part
+of</em> this loop.</strong> Subject: <em>“The function to call should be
+chosen using the LLM, not with heuristics or any other sort of medieval
+magic.”</em> This means: you cannot simply keyword-match the prompt
+against function names/descriptions with string <code>.contains()</code>
+logic. The LLM itself, through its logits, must be the thing deciding
+which function name gets written into the <code>"name"</code> field —
+meaning your constrained decoder’s allowed-token-set at that position
+must be scoped to “one of the valid function name strings, verbatim,”
+and letting the model’s own logits pick which one, among only those
+legal options. (This is your Phase 3.4 mechanism used for a <em>closed
+set</em> of allowed literal strings — a simpler case than the general
+“number” or free-text “string” constraint.)</p>
+<p><strong>6.3 — Why this guarantees 100% valid, parseable
+output.</strong> Because at <em>every single token boundary</em>,
+illegal continuations are mathematically impossible to select (masked to
+<code>-inf</code>), the model is <strong>structurally incapable of
+producing anything except a well-formed, schema-compliant JSON
+object.</strong> It might still choose the <em>wrong</em> function or
+the <em>wrong</em> number (that’s an accuracy problem, targeted at 90%+
+per §V.5) — but it can never produce a result that fails to parse, or
+that violates the schema’s structure. This is the precise meaning of
+subject’s claim: <em>“the produced JSON is 100% retrievable and can
+always be parsed without errors.”</em> Accuracy (semantic correctness)
+and validity (structural correctness) are two different guarantees,
+achieved by two different means: validity by masking, accuracy by the
+model’s own (imperfect) language understanding.</p>
+<p><strong>6.4 — Where creativity/randomness has no place here.</strong>
+Unlike chatbots or story generation, you generally want
+<strong>deterministic, greedy selection among the legal tokens</strong>.
+There is no “more interesting” JSON — there is only “correct” and
+“incorrect,” so temperature/top-p sampling mostly just adds noise you
+don’t want, though you’re free to experiment.</p>
+<h3 id="mental-model-5">Mental model</h3>
+<p>You are not writing a program that “asks the AI to write JSON.” You
+are writing a <strong>guided autocomplete keyboard</strong> that happens
+to have an AI brain plugged into it for <em>content</em> decisions
+(which function? which number? which name?), while <em>you</em> retain
+full physical control over which keys are even pressable at each
+moment.</p>
+<h3 id="checkpoint-questions-5">Checkpoint questions</h3>
+<ul>
+<li>Walk through, in words, what happens at the exact token position
+right after the model has written
+<code>{"name": "fn_add_numbers", "parameters": {"a": 2.0,</code>. What
+set of next tokens should be legal, and why?</li>
+<li>Why does masking illegal logits to <code>-inf</code> guarantee
+validity, while nothing guarantees accuracy?</li>
+<li>Why is “choose the function via keyword matching” explicitly against
+the spirit (and the letter) of the subject?</li>
+</ul>
+<h3 id="link-to-the-project-5">Link to the project</h3>
+<p>This phase, combined with Phase 2 (vocabulary) and Phase 5 (grammar),
+<em>is</em> the entire mandatory technical deliverable of §V.3.3.
+Everything after this in the course is about organizing this algorithm
+into a real, robust, well-engineered piece of software.</p>
+<hr />
+<h2
+id="phase-7-the-wider-landscape-context-so-youre-not-learning-in-a-vacuum">PHASE
+7 — The Wider Landscape (context, so you’re not learning in a
+vacuum)</h2>
+<h3 id="goal-6">Goal</h3>
+<p>Situate what you just learned against real-world systems, so you
+understand this project is not a toy abstraction but a simplified
+rebuild of production techniques.</p>
+<h3 id="core-content-6">Core content</h3>
+<ul>
+<li><strong>OpenAI / Anthropic “tool use” / “function calling”
+APIs</strong>: conceptually identical goal (natural language →
+structured call), but at massive model scale, often relying more on
+strong model instruction-following <em>plus</em> some constrained
+decoding/validation-retry on the provider side.</li>
+<li><strong>Grammar-constrained generation libraries</strong> (e.g.,
+<code>outlines</code>, <code>guidance</code>, <code>llama.cpp</code>’s
+GBNF grammars, <code>lm-format-enforcer</code>): these are exactly the
+class of tool this project forbids you from using (§IV.3.1) — because
+your entire point is to build the mechanism, not import it.</li>
+<li><strong>JSON Schema</strong> as an industry-standard: what you’re
+doing with <code>functions_definition.json</code> is a simplified,
+hand-rolled JSON Schema validator + generator.</li>
+<li><strong>Why small on-device models matter commercially</strong>:
+cheaper inference, can run offline/on-device, privacy-preserving — but
+only viable for structured tasks if reliability is engineered rather
+than hoped for. This is <em>the</em> commercial justification for the
+whole discipline of constrained decoding.</li>
+</ul>
+<h3 id="checkpoint-questions-6">Checkpoint questions</h3>
+<ul>
+<li>Name one real product that does something conceptually similar to
+this project.</li>
+<li>Why would a company want to use a 0.6B model instead of a 100B+
+model, and what do they have to solve to make that viable?</li>
+</ul>
+<h3 id="link-to-the-project-6">Link to the project</h3>
+<p>This phase is context, not exam material — but it’s exactly what
+you’d bring up in a peer defense when asked “why does this matter /
+where is this used in real life?”</p>
+<hr />
+<h1 id="part-b-project-analysis">PART B — PROJECT ANALYSIS</h1>
+<p><em>(From here on: no new theory, only meticulous dissection of the
+actual subject.)</em></p>
+<hr />
+<h2 id="phase-8-meticulous-requirement-breakdown">PHASE 8 — Meticulous
+Requirement Breakdown</h2>
+<h3 id="goal-7">Goal</h3>
+<p>Extract every single testable requirement from the subject into an
+unambiguous checklist, with nothing left to “I assumed it meant…”.</p>
+<h3 id="hard-technicallanguage-constraints-ch.-iv.1-iv.3.1">8.1 — Hard
+technical/language constraints (Ch. IV.1, IV.3.1)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Python ≥ 3.10</label></li>
+<li><label><input type="checkbox" />flake8-compliant</label></li>
+<li><label><input type="checkbox" />No unhandled exceptions anywhere —
+graceful <code>try/except</code>, clear user-facing error messages,
+program must never crash during review</label></li>
+<li><label><input type="checkbox" />All resources (files, etc.) via
+context managers</label></li>
+<li><label><input type="checkbox" />Type hints everywhere
+(<code>typing</code> module) — must pass <code>mypy</code> cleanly
+(non-strict target:
+<code>--warn-return-any --warn-unused-ignores --ignore-missing-imports       --disallow-untyped-defs --check-untyped-defs</code>;
+strict mode is optional/bonus-grade)</label></li>
+<li><label><input type="checkbox" />Docstrings (PEP 257, Google or NumPy
+style) on functions and classes</label></li>
+<li><label><input type="checkbox" /><strong>All classes must use
+pydantic</strong> for validation (this is a strong architectural signal
+— see Phase 9)</label></li>
+<li><label><input type="checkbox" />Allowed extra packages:
+<code>numpy</code>, <code>json</code> (standard lib anyway)</label></li>
+<li><label><input type="checkbox" /><strong>Forbidden</strong>:
+<code>dspy</code>, <code>pytorch</code>,
+<code>huggingface</code>/<code>transformers</code>,
+<code>outlines</code>, and “any similar package” — read broadly:
+<strong>anything that would do tokenization, inference, or constrained
+decoding <em>for</em> you</strong> is forbidden, not just the named
+ones. When in doubt, ask: “does this library remove the need for me to
+reason about tokens/logits myself?” If yes → forbidden.</label></li>
+<li><label><input type="checkbox" />Model: <code>Qwen/Qwen3-0.6B</code>
+must work (default); other models allowed <em>in addition</em>, not
+<em>instead</em>.</label></li>
+<li><label><input type="checkbox" />Function selection must be
+LLM-driven, not heuristic/keyword-based.</label></li>
+<li><label><input type="checkbox" />No private methods/attributes of
+<code>llm_sdk</code> may be used — only its public, documented interface
+(<code>get_logits_from_input_ids</code>,
+<code>get_path_to_vocab_file</code>, <code>encode</code>,
+<code>decode</code>).</label></li>
+<li><label><input type="checkbox" />Dependency management via
+<code>uv</code> (project must work with plain
+<code>uv sync</code>).</label></li>
+</ul>
+<h3 id="makefile-targets-ch.-iv.2-all-mandatory-except-lint-strict">8.2
+— Makefile targets (Ch. IV.2) — all mandatory except
+<code>lint-strict</code></h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>install</code> — install deps
+(pip/uv/pipx/etc.)</label></li>
+<li><label><input type="checkbox" /><code>run</code> — run the main
+script</label></li>
+<li><label><input type="checkbox" /><code>debug</code> — run main script
+under <code>pdb</code> (or similar)</label></li>
+<li><label><input type="checkbox" /><code>clean</code> — remove
+<code>__pycache__</code>, <code>.mypy_cache</code>, etc.</label></li>
+<li><label><input type="checkbox" /><code>lint</code> — run
+<code>flake8 .</code> and the specified <code>mypy .</code>
+invocation</label></li>
+<li><label><input type="checkbox" /><code>lint-strict</code> (optional)
+— <code>flake8 .</code> + <code>mypy . --strict</code></label></li>
+</ul>
+<h3 id="cli-contract-ch.-iv.3.2">8.3 — CLI contract (Ch. IV.3.2)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />Invocation:
+<code>uv run python -m src [--functions_definition &lt;file&gt;] [--input &lt;file&gt;] [--output &lt;file&gt;]</code></label></li>
+<li><label><input type="checkbox" />All three arguments optional, with
+defaults:</label>
+<ul>
+<li><code>--functions_definition</code> default →
+<code>data/input/functions_definition.json</code></li>
+<li><code>--input</code> default →
+<code>data/input/function_calling_tests.json</code></li>
+<li><code>--output</code> default →
+<code>data/output/function_calling_results.json</code> (note: §V.4 calls
+it <code>function_calling_results.json</code>, while §IV.3.2’s example
+uses <code>function_calls.json</code> as a custom path example —
+<strong>the default filename that matters is the one in §V.4:
+<code>function_calling_results.json</code>. Treat the
+<code>--output</code> argument as fully overridable, but your
+<em>default</em> must match §V.4.</strong>)</li>
+</ul></li>
+</ul>
+<h3 id="input-file-contracts-ch.-v.2">8.4 — Input file contracts (Ch.
+V.2)</h3>
+<ul>
+<li><code>function_calling_tests.json</code>: JSON array of
+<code>{"prompt": "&lt;string&gt;"}</code> objects.
+<ul>
+<li>Must not assume a fixed number of prompts.</li>
+<li>Must not assume prompts always map cleanly to an available function
+(ambiguous prompts are explicitly a tested edge case, §V.6 warning
+box).</li>
+</ul></li>
+<li><code>functions_definition.json</code>: JSON array of function
+specs, each with:
+<ul>
+<li><code>name</code> (string, the literal identifier to output,
+e.g. <code>fn_add_numbers</code>)</li>
+<li><code>description</code> (string — natural language, meant to help
+the LLM disambiguate)</li>
+<li><code>parameters</code> (object: parameter name →
+<code>{"type": "&lt;type&gt;"}</code>)</li>
+<li><code>returns</code> (object: <code>{"type": "&lt;type&gt;"}</code>)
+— informational only, not used in output</li>
+<li><strong>You must not hardcode function names, counts, or parameter
+names/types anywhere.</strong> Subject explicitly warns: <em>“your
+solution will be tested with different prompts and function sets”</em>
+and <em>“input files may change during the peer review.”</em> Any
+hardcoded assumption is an instant, severe defect.</li>
+</ul></li>
+<li><strong>Both files must be defensively parsed</strong>: missing
+file, malformed JSON, empty array, unexpected schema shape — all must be
+handled without crashing, with a clear message.</li>
+</ul>
+<h3 id="output-file-contract-ch.-v.4">8.5 — Output file contract (Ch.
+V.4)</h3>
+<ul>
+<li>Exactly one file: (default)
+<code>data/output/function_calling_results.json</code></li>
+<li>A JSON array; one object per input prompt (<strong>even prompts that
+couldn’t be resolved must presumably still yield well-formed
+output</strong> — see Phase 8.8 on open questions).</li>
+<li>Each object has <strong>exactly</strong> three keys:
+<code>prompt</code>, <code>name</code>, <code>parameters</code> — no
+more, no less.</li>
+<li><code>prompt</code>: verbatim copy of the input prompt string.</li>
+<li><code>name</code>: must be one of the literal names present in
+<code>functions_definition.json</code>.</li>
+<li><code>parameters</code>: an object containing <strong>all required
+arguments</strong>, with values correctly typed per the function’s
+schema (<code>number</code>→ float/int as JSON number,
+<code>string</code>→ JSON string, <code>boolean</code>→ JSON true/false,
+etc.)</li>
+<li>Validation rules restated as tests you should be able to run
+mentally against your own output:
+<ul class="task-list">
+<li><label><input type="checkbox" />Whole file parses with a standard
+JSON parser, no exceptions.</label></li>
+<li><label><input type="checkbox" />No trailing commas, no comments, no
+stray prose anywhere in the file.</label></li>
+<li><label><input type="checkbox" />Every <code>name</code> exists in
+the corresponding <code>functions_definition.json</code>.</label></li>
+<li><label><input type="checkbox" />Every key inside
+<code>parameters</code> matches a declared parameter name for that
+function — nothing extra, nothing missing.</label></li>
+<li><label><input type="checkbox" />Every value’s JSON type matches the
+declared type.</label></li>
+</ul></li>
+</ul>
+<h3 id="non-functional-targets-ch.-v.5">8.6 — Non-functional targets
+(Ch. V.5)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" />≥ 90% correct function selection +
+argument extraction (accuracy — a <em>model quality</em> target,
+separate from validity)</label></li>
+<li><label><input type="checkbox" />100% valid, schema-compliant JSON (a
+<em>decoding engineering</em> target — must be exactly 100%, not
+“mostly”)</label></li>
+<li><label><input type="checkbox" />All test prompts processed in under
+5 minutes on standard hardware (a <em>performance engineering</em>
+target — relevant to how naively/expensively you scan the vocabulary at
+each step; see Phase 9’s performance notes)</label></li>
+<li><label><input type="checkbox" />Never crashes; always gives clear
+error messages (a <em>robustness</em> target, overlapping with
+8.1)</label></li>
+</ul>
+<h3
+id="readme-requirements-ch.-vi-treat-this-as-a-deliverable-with-its-own">8.7
+— README requirements (Ch. VI) — treat this as a deliverable with its
+own</h3>
+<p>mandatory structure, not an afterthought - [ ] First line,
+italicized, exact template:
+<code>*This project has been created as part of the 42 curriculum by &lt;login1&gt;[, &lt;login2&gt;[, &lt;login3&gt;[...]]].*</code>
+- [ ] “Description” section — goal + overview - [ ] “Instructions”
+section — install/run - [ ] “Resources” section — real external
+references (docs, articles, tutorials) on LLMs/function
+calling/constrained decoding, <strong>plus</strong> a transparent
+account of how AI tools were used during your own development process
+(which tasks, which parts) — this directly mirrors Chapter II’s “AI
+Instructions” ethics section; treat this as a graded honesty
+requirement, not boilerplate. - [ ] Project-specific mandatory
+additions: - [ ] Algorithm explanation (your constrained decoding
+approach, in detail) - [ ] Design decisions - [ ] Performance analysis
+(accuracy, speed, reliability) - [ ] Challenges faced - [ ] Testing
+strategy - [ ] Example usage - [ ] Entire README in English.</p>
+<h3 id="explicit-open-questions-the-subject-leaves-to-your-judgment">8.8
+— Explicit open questions the subject leaves to your judgment</h3>
+<p>Real subjects always leave some gaps; identifying them <em>now</em>,
+deliberately, is better engineering than discovering them at review
+time. - The subject shows only “flat” scalar types (<code>number</code>,
+<code>string</code>) in examples but doesn’t explicitly forbid
+<code>boolean</code>, <code>array</code>, or nested <code>object</code>
+parameter types — §V.4.2 mentions “boolean, etc.” as an example, and Ch.
+VII’s bonus list explicitly mentions “complex nested function arguments”
+as a <em>bonus</em>, implying flat types are the
+<em>mandatory</em>-scope baseline, and nesting is <em>optional</em>
+scope. Plan your grammar to be primarily robust for flat types, and
+treat nesting as a stretch goal. - What happens when a prompt genuinely
+cannot be matched to any function (ambiguous or out-of-scope requests)?
+The subject doesn’t give an example output for this case. You’ll need to
+decide and <em>document</em> a policy (e.g., a low-confidence fallback,
+or simply letting the LLM’s own constrained selection pick its “best
+guess” among the legal function names — remember, heuristic overrides
+are forbidden, so the resolution must still come from the LLM’s own
+logits, not your own fallback logic overriding it). Document this
+decision explicitly in your README’s “Design decisions” section —
+reviewers will ask. - Whether <code>--output</code>’s example filename
+discrepancy (<code>function_calls.json</code> in §IV.3.2
+vs. <code>function_calling_results.json</code> in §V.4) matters: resolve
+this by making the flag fully configurable (as required) while keeping
+your <em>default</em> aligned with §V.4’s explicit contract, since §V.4
+is the authoritative output section.</p>
+<h3 id="checkpoint-questions-7">Checkpoint questions</h3>
+<ul>
+<li>Which requirement, if violated, causes the most catastrophic grading
+outcome (hint: re-read §I.1’s “if your program crashes… it will be
+considered non-functional” and §V.4.2’s “no extra keys or prose…
+anywhere”)?</li>
+<li>Which two requirements are in tension with each other, and how
+(hint: 90%+ accuracy is a soft/statistical target, 100% valid JSON is a
+hard/structural guarantee — your architecture must cleanly separate the
+mechanisms that deliver each one).</li>
+</ul>
+<hr />
+<h2 id="phase-9-scope-definition-mvp-vs.-full-vs.-bonus">PHASE 9 — Scope
+Definition (MVP vs. Full vs. Bonus)</h2>
+<h3 id="goal-8">Goal</h3>
+<p>Draw an explicit line between “must exist for a passing grade,”
+“should exist for a strong grade,” and “bonus, only after the rest is
+airtight.”</p>
+<h3 id="tier-0-must-exist-before-anything-else-skeleton-safety-net">9.1
+— Tier 0 (must exist before anything else): skeleton &amp; safety
+net</h3>
+<ul>
+<li>CLI argument parsing with the three flags + defaults</li>
+<li>Robust file I/O for both inputs (missing file, malformed JSON →
+clean error, no crash)</li>
+<li>Project scaffolding (<code>src/</code>, <code>pyproject.toml</code>,
+<code>uv.lock</code>, Makefile, <code>.gitignore</code>,
+<code>llm_sdk/</code> copied in) — nothing “smart” yet, just a program
+that starts, reads inputs, and exits cleanly even with zero real
+generation logic.</li>
+</ul>
+<h3
+id="tier-1-mandatory-core-the-actual-constrained-decoding-engine">9.2 —
+Tier 1 (mandatory core): the actual constrained decoding engine</h3>
+<ul>
+<li>Vocabulary loading &amp; token-ID ↔︎ token-string mapping</li>
+<li>Generation loop wired to <code>get_logits_from_input_ids</code></li>
+<li>Structural JSON-grammar state tracking</li>
+<li>Schema-aware constraint layer (per-function, per-parameter
+type)</li>
+<li>Function-name-constrained selection step</li>
+<li>Output assembly exactly matching §V.4’s 3-key contract</li>
+<li>Output written as valid JSON to the correct path</li>
+</ul>
+<h3 id="tier-2-mandatory-quality-bar-the-targets-of-v.5">9.3 — Tier 2
+(mandatory quality bar): the targets of §V.5</h3>
+<ul>
+<li>Accuracy tuning (prompt design for the parts <em>not</em> under hard
+constraint — e.g. how you present the function menu and the user request
+to the model so it makes good <em>content</em> decisions within the
+legal token space)</li>
+<li>Performance work so the 5-minute budget is met (this is where naive
+“check every vocab token by string-decoding it every step” approaches
+will need optimization — see Phase 10’s performance component)</li>
+<li>Defensive edge-case handling: empty strings, large numbers, special
+characters, wrong types, ambiguous prompts, multi-parameter functions
+(§V.6’s explicit test list)</li>
+</ul>
+<h3 id="tier-3-documentation-mandatory-but-often-left-too-late">9.4 —
+Tier 3 (documentation, mandatory but often left too late)</h3>
+<ul>
+<li>README with all 6 mandatory + 3 base sections (Phase 8.7)</li>
+</ul>
+<h3 id="tier-4-bonus-optional-only-after-tiers-03-are-solid-ch.-vii">9.5
+— Tier 4 (bonus, optional, only after Tiers 0–3 are solid) — Ch.
+VII</h3>
+<p>Ranked roughly by effort-to-payoff for a beginner, not by the order
+in the subject: 1. Public, clean <code>encode</code>/<code>decode</code>
+usage demonstration integrated with your constrained decoder (shows you
+understand the full pipeline end-to-end) 2. Comprehensive automated test
+suite (<code>pytest</code>/<code>unittest</code>) covering the §V.6 edge
+cases 3. Performance optimizations (caching repeated prefix
+computations, batching) 4. Recoding the tokenizer path to avoid
+<code>encode</code>/<code>decode</code> and rely purely on
+<code>get_logits_from_input_ids</code> +
+<code>get_path_to_vocab_file</code> (a deliberately harder, “closer to
+the metal” version of Tier 1 — attempt only once Tier 1 works via the
+simpler path) 5. Support for additional LLM models beyond Qwen3-0.6B 6.
+Support for complex nested function arguments 7. Visualization of the
+generation process 8. Advanced error recovery mechanisms</p>
+<h3 id="checkpoint-questions-8">Checkpoint questions</h3>
+<ul>
+<li>If you had exactly one week and had to cut something, which Tier
+would you cut first, and why does that ordering make sense given how
+grading (§V.5, §V.4.2) is described?</li>
+<li>Why is “recode the tokenizer without encode/decode” listed as
+<em>harder</em> than the default approach, even though both use the same
+SDK?</li>
+</ul>
+<hr />
+<h1 id="part-c-architecture-structure">PART C — ARCHITECTURE &amp;
+STRUCTURE</h1>
+<p><em>(Still zero code. This is the blueprint you’ll hand to yourself
+before typing a single line of Python.)</em></p>
+<hr />
+<h2
+id="phase-10-system-architecture-components-and-responsibilities">PHASE
+10 — System Architecture: Components and Responsibilities</h2>
+<h3 id="goal-9">Goal</h3>
+<p>Decompose the whole system into independent, testable components,
+each with a single clear responsibility, clean inputs/outputs, and an
+explicit contract with its neighbors — before any implementation
+begins.</p>
+<h3 id="the-component-map">10.1 — The component map</h3>
+<pre><code>                         ┌────────────────────┐
+                         │   CLI / Entrypoint  │   (src/__main__.py)
+                         │  arg parsing, wiring │
+                         └─────────┬────────────┘
+                                   │
+                 ┌─────────────────┼──────────────────┐
+                 ▼                 ▼                  ▼
+        ┌────────────────┐ ┌──────────────┐  ┌──────────────────┐
+        │  Config Loader   │ │ Function Def  │  │  Prompt Loader    │
+        │ (paths, defaults)│ │ Loader+Model  │  │  (tests.json)     │
+        └────────────────┘ └──────────────┘  └──────────────────┘
+                                   │                  │
+                                   └────────┬─────────┘
+                                            ▼
+                                 ┌───────────────────────┐
+                                 │   Orchestrator /        │
+                                 │   Pipeline Controller    │
+                                 └───────────┬─────────────┘
+                                             │  (per prompt)
+                                             ▼
+                          ┌──────────────────────────────────┐
+                          │       Vocabulary Manager            │
+                          │ (token_id &lt;-&gt; token_str mapping)    │
+                          └───────────────┬──────────────────┘
+                                          │
+                                          ▼
+                          ┌──────────────────────────────────┐
+                          │     Constrained Decoding Engine     │
+                          │  - grammar/state tracker            │
+                          │  - schema constraint builder         │
+                          │  - logit masking                     │
+                          │  - token selection                    │
+                          └───────────────┬──────────────────┘
+                                          │  (calls back into)
+                                          ▼
+                          ┌──────────────────────────────────┐
+                          │        llm_sdk (given, read-only)   │
+                          │  get_logits_from_input_ids, etc.    │
+                          └──────────────────────────────────┘
+                                          │
+                                          ▼
+                          ┌──────────────────────────────────┐
+                          │     Output Assembler &amp; Validator    │
+                          │  (build {prompt,name,parameters})   │
+                          └───────────────┬──────────────────┘
+                                          │
+                                          ▼
+                          ┌──────────────────────────────────┐
+                          │        Output Writer                │
+                          │  (write final JSON array to disk)   │
+                          └──────────────────────────────────┘
+
+        Cross-cutting concerns touching every box above:
+        - Error Handling / Logging layer
+        - Pydantic Data Models (used by every box that passes structured data)</code></pre>
+<h3 id="component-by-component-specification">10.2 —
+Component-by-component specification</h3>
+<p>For each component below: <strong>Responsibility</strong>,
+<strong>Inputs</strong>, <strong>Outputs</strong>, <strong>Must
+handle</strong>, <strong>Must NOT do</strong>.</p>
+<hr />
+<h4 id="a.-cli-entrypoint-src__main__.py-or-equivalent-module-entry">A.
+CLI / Entrypoint (<code>src/__main__.py</code> or equivalent module
+entry)</h4>
+<ul>
+<li><strong>Responsibility</strong>: parse
+<code>--functions_definition</code>, <code>--input</code>,
+<code>--output</code>; apply documented defaults; hand off to the
+orchestrator; catch any exception that bubbles all the way up and
+convert it into a clean, human-readable error message + non-zero exit
+code (never a raw traceback dump to the end user).</li>
+<li><strong>Inputs</strong>: <code>sys.argv</code>.</li>
+<li><strong>Outputs</strong>: process exit code; delegates real work to
+the Orchestrator.</li>
+<li><strong>Must handle</strong>: missing arguments (use defaults),
+<code>--help</code> (standard <code>argparse</code> behavior is fine),
+any unhandled downstream exception (top-level <code>try/except</code>
+around the pipeline invocation).</li>
+<li><strong>Must NOT do</strong>: contain any business logic itself (no
+JSON parsing, no model logic) — it is purely a thin wiring layer.</li>
+</ul>
+<hr />
+<h4 id="b.-config-defaults-component">B. Config / Defaults
+component</h4>
+<ul>
+<li><strong>Responsibility</strong>: define the three default paths
+(§IV.3.2 / §V.4) in exactly one place so they’re never duplicated/typo’d
+across the codebase.</li>
+<li><strong>Inputs</strong>: none (or CLI overrides passed
+through).</li>
+<li><strong>Outputs</strong>: resolved <code>Path</code> objects for
+functions-definition file, input file, output file.</li>
+<li><strong>Must handle</strong>: relative vs. absolute paths cleanly,
+directory creation for the output path if the parent directory doesn’t
+yet exist (still don’t crash if it’s missing — create it, or fail with a
+clear message if creation isn’t possible).</li>
+</ul>
+<hr />
+<h4 id="c.-function-definitions-loader-data-model">C. Function
+Definitions Loader + Data Model</h4>
+<ul>
+<li><strong>Responsibility</strong>: read
+<code>functions_definition.json</code>, parse and
+<strong>validate</strong> it into typed pydantic models (this is where
+§IV.3.1’s “all classes must use pydantic” requirement lands most
+naturally): a <code>FunctionParameter</code> model (name → type), a
+<code>FunctionDefinition</code> model (<code>name</code>,
+<code>description</code>, <code>parameters</code>,
+<code>returns</code>), and a top-level <code>FunctionCatalog</code>
+wrapping the list.</li>
+<li><strong>Inputs</strong>: file path.</li>
+<li><strong>Outputs</strong>: a validated, typed in-memory catalog of
+functions.</li>
+<li><strong>Must handle</strong>: file not found, invalid JSON syntax,
+JSON that doesn’t match the expected schema (e.g., missing
+<code>name</code> key) — each with a distinct, clear error message; an
+<em>empty</em> array of functions (valid JSON, zero functions — decide
+and document what your program does here, e.g. clean failure with a
+clear message, since no function calling is possible).</li>
+<li><strong>Must NOT do</strong>: assume specific function names or a
+specific number of functions anywhere in its logic (§V.4.2
+warning).</li>
+</ul>
+<hr />
+<h4 id="d.-prompts-loader-data-model">D. Prompts Loader + Data
+Model</h4>
+<ul>
+<li><strong>Responsibility</strong>: read
+<code>function_calling_tests.json</code> into a list of typed
+<code>PromptRequest</code> pydantic models
+(<code>prompt: str</code>).</li>
+<li><strong>Inputs</strong>: file path.</li>
+<li><strong>Outputs</strong>: list of validated prompt objects.</li>
+<li><strong>Must handle</strong>: same file-error classes as component
+C; an empty prompts array (valid → produce an empty output array, not an
+error); a prompt entry missing the <code>"prompt"</code> key or with a
+non-string value.</li>
+</ul>
+<hr />
+<h4 id="e.-vocabulary-manager">E. Vocabulary Manager</h4>
+<ul>
+<li><strong>Responsibility</strong>: load the vocabulary file (via
+<code>llm_sdk</code>’s <code>get_path_to_vocab_file()</code>), and
+expose a clean bidirectional mapping:
+<code>token_id → token_string</code> and (if useful)
+<code>token_string → token_id</code>. This is the component every part
+of the decoding engine will query when it needs to know “what string
+would token ID <code>N</code> actually produce if selected?”</li>
+<li><strong>Inputs</strong>: path returned by the SDK.</li>
+<li><strong>Outputs</strong>: an in-memory lookup structure (built once,
+reused for every generation step and every prompt — see performance
+notes in 10.3).</li>
+<li><strong>Must handle</strong>: special marker characters for leading
+spaces / sentencepiece markers (Phase 2.2) — your mapping must expose
+the <em>actual resulting text</em>, not the raw marked-up token string,
+when a component asks “what would this produce?”</li>
+<li><strong>Must NOT do</strong>: silently assume ASCII-only tokens;
+vocabularies can include multi-byte / unicode entries.</li>
+</ul>
+<hr />
+<h4 id="f.-constrained-decoding-engine-the-heart-of-the-project">F.
+Constrained Decoding Engine — the heart of the project</h4>
+<p>This deserves to be split conceptually into
+<strong>sub-components</strong>, even if you organize them as one module
+later:</p>
+<p><strong>F.1 — Grammar / State Tracker</strong> -
+<strong>Responsibility</strong>: maintain “where am I in the JSON
+structure right now” (e.g., <code>EXPECTING_OPEN_BRACE</code>,
+<code>EXPECTING_KEY_STRING</code>, <code>EXPECTING_COLON</code>,
+<code>EXPECTING_VALUE_OF_TYPE_X</code>,
+<code>EXPECTING_COMMA_OR_CLOSE</code>, <code>DONE</code>), and expose,
+at any moment, a method like “given the current state and a candidate
+next-token string, would this be a legal continuation?” -
+<strong>Inputs</strong>: current state + generated-so-far text; a
+candidate token string. - <strong>Outputs</strong>: boolean legality +
+the <em>new</em> state that would result if accepted. - <strong>Must
+handle</strong>: nested contexts correctly (you’re inside the
+<code>parameters</code> object, which is itself inside the top-level
+object) — this naturally wants a small stack-like structure, since JSON
+nesting is exactly a pushdown-automaton problem (Phase 5.1).</p>
+<p><strong>F.2 — Schema Constraint Resolver</strong> -
+<strong>Responsibility</strong>: given the <em>currently expected
+field</em> (which key of which function we’re filling), consult the
+<code>FunctionDefinition</code> model (component C) to determine the
+expected type, and provide type-specific legality checks (e.g., “for a
+<code>number</code> value in progress, is this candidate token
+consistent with continuing a valid JSON number literal?”; “for a
+<code>string</code> value, are there no unescaped bare quotes/control
+characters?”; “for the top-level <code>name</code> field, is this
+candidate token consistent with being a prefix of at least one
+function’s real name?”). - <strong>Inputs</strong>: current field
+context, <code>FunctionCatalog</code>. - <strong>Outputs</strong>: a
+per-field legality predicate. - <strong>Must handle</strong>: the
+<em>function name field specifically</em> needs a “closed-set of literal
+strings” checker — different in kind from the “number” and “string”
+checkers, which are <em>open-ended but type-constrained</em>, not
+closed-set.</p>
+<p><strong>F.3 — Logit Masker</strong> -
+<strong>Responsibility</strong>: given the full logits vector and the
+current legal-token-ID set (derived by combining F.1 + F.2 + the
+Vocabulary Manager), produce a masked logits vector where illegal
+entries are set to negative infinity. - <strong>Inputs</strong>: raw
+logits (<code>List[float]</code>), legal token ID set. -
+<strong>Outputs</strong>: masked logits. - <strong>Must NOT do</strong>:
+mutate the original logits list in a way that surprises the caller —
+treat this as a pure function returning a new structure, for
+testability.</p>
+<p><strong>F.4 — Token Selector</strong> -
+<strong>Responsibility</strong>: given masked logits, pick the next
+token ID (greedy argmax by default, per Phase 6.4’s reasoning). -
+<strong>Inputs</strong>: masked logits. - <strong>Outputs</strong>:
+single chosen token ID. - <strong>Must handle</strong>: the degenerate
+case where <em>no</em> tokens are legal (should not happen if F.1/F.2
+are correct, but defensively: this indicates a bug in your grammar
+tracker, and should raise/log a clear internal error rather than crash
+opaquely or silently produce garbage).</p>
+<p><strong>F.5 — Generation Loop Driver</strong> -
+<strong>Responsibility</strong>: orchestrate F.1–F.4 across the full
+multi-step loop described in Phase 6.1/6.3, calling
+<code>get_logits_from_input_ids</code> each iteration, terminating once
+the state tracker reports <code>DONE</code>, and returning the final
+generated text (which is then trivially <code>json.loads</code>-able, by
+construction). - <strong>Inputs</strong>: prompt text (encoded via SDK
+<code>encode</code>), function catalog. - <strong>Outputs</strong>: raw
+generated JSON text. - <strong>Must handle</strong>: a maximum-iteration
+safety cap (even though structurally you should always terminate, a hard
+iteration ceiling protects against an unforeseen grammar bug turning
+into an infinite loop — respects §IV.1’s “never crashes / never hangs”
+spirit even though it’s phrased as “never crashes”).</p>
+<hr />
+<h4 id="g.-output-assembler-validator">G. Output Assembler &amp;
+Validator</h4>
+<ul>
+<li><strong>Responsibility</strong>: take the raw generated JSON text
+per prompt, parse it (<code>json.loads</code> — trivial by this point,
+since it’s guaranteed valid), wrap it into a pydantic
+<code>FunctionCallResult</code> model (<code>prompt</code>,
+<code>name</code>, <code>parameters</code>), and run a final defensive
+validation pass against the actual <code>FunctionDefinition</code> (belt
+and suspenders: even though your grammar <em>should</em> make this
+redundant, validating the final result before writing catches any
+lingering engine bugs before they reach the deliverable file).</li>
+<li><strong>Inputs</strong>: generated text, original prompt, function
+catalog.</li>
+<li><strong>Outputs</strong>: a validated
+<code>FunctionCallResult</code>.</li>
+<li><strong>Must handle</strong>: report a validation failure clearly
+rather than writing malformed data — decide and document your policy for
+what happens to the <em>output array</em> if a single prompt fails (skip
+it with a warning? include a best-effort partial? This is a design
+decision to document in your README per §VI).</li>
+</ul>
+<hr />
+<h4 id="h.-output-writer">H. Output Writer</h4>
+<ul>
+<li><strong>Responsibility</strong>: serialize the full list of
+<code>FunctionCallResult</code> objects to the target output path as a
+pretty or compact JSON array; ensure parent directories exist; use a
+context manager for the file handle.</li>
+<li><strong>Inputs</strong>: list of results, output path.</li>
+<li><strong>Outputs</strong>: a file on disk.</li>
+<li><strong>Must handle</strong>: permission errors, disk errors — clear
+message, no crash.</li>
+</ul>
+<hr />
+<h4 id="i.-orchestrator-pipeline-controller">I. Orchestrator / Pipeline
+Controller</h4>
+<ul>
+<li><strong>Responsibility</strong>: the only component that “knows
+about everything” — wires Config → Loaders → Vocabulary Manager → (per
+prompt) Decoding Engine → Output Assembler → Output Writer, and reports
+overall progress/timing (relevant to the 5-minute performance target in
+§V.5).</li>
+<li><strong>Inputs</strong>: resolved config paths.</li>
+<li><strong>Outputs</strong>: none directly (delegates to Output
+Writer); return code / summary for the CLI layer.</li>
+</ul>
+<hr />
+<h4
+id="j.-error-handling-logging-cross-cutting-not-a-box-but-a-discipline">J.
+Error Handling &amp; Logging (cross-cutting, not a “box” but a
+discipline)</h4>
+<ul>
+<li>Define <strong>your own small hierarchy of custom
+exceptions</strong> (e.g., a base project-specific error type, with
+subtypes for “input file error,” “schema validation error,” “generation
+error”) so that the top-level CLI handler (component A) can catch
+broadly but still report <em>specifically</em> what went wrong.</li>
+<li>Every component above should raise your custom exceptions rather
+than letting raw
+<code>KeyError</code>/<code>json.JSONDecodeError</code>/etc. propagate
+unexplained — catch low-level exceptions close to their source and
+re-raise as a clear, contextualized project exception (“Failed to parse
+functions_definition.json: <detail>” rather than a bare
+<code>JSONDecodeError</code> traceback).</li>
+</ul>
+<hr />
+<h3
+id="performance-considerations-so-v.5s-5-minute-budget-isnt-a-surprise">10.3
+— Performance considerations (so §V.5’s 5-minute budget isn’t a
+surprise</h3>
+<p>at the end) - Recomputing “for every one of possibly 100k+ vocabulary
+entries, decode the token and run the grammar/schema check” at <em>every
+single generation step</em>, for <em>every prompt</em>, naively, is the
+most likely source of a performance failure. Plan, from the start, for:
+- Precomputing the token_id → token_string table <strong>once</strong>
+(Vocabulary Manager is built once, not per prompt). - Where possible,
+precomputing coarse categories of tokens once (e.g., “the set of tokens
+that are pure ASCII digits,” “the set of tokens that are exactly one of
+the function names’ first N characters”) rather than re-deriving them
+from scratch every step. - Keeping the “legal token set” computation as
+narrow as possible given the current grammar state, rather than scanning
+the entire vocabulary unfiltered at every step when a cheaper structural
+shortcut exists (e.g., once you’re definitely inside a closed-set field
+like the function name, you only need to consider tokens that are
+plausible prefixes/continuations of the small number of real function
+names — not the whole vocabulary). - This is a natural place for the
+“bonus: performance optimizations (caching, batching)” item, but a
+<em>baseline</em> level of this thinking is needed even for the
+mandatory 5-minute target once your function/prompt counts grow.</p>
+<h3 id="checkpoint-questions-9">Checkpoint questions</h3>
+<ul>
+<li>Which component is responsible for guaranteeing <em>validity</em>,
+and which is responsible (as best as an LLM can be) for
+<em>accuracy</em>? Why must these stay separated?</li>
+<li>If <code>functions_definition.json</code> is updated by a reviewer
+to include a brand-new function with a brand-new parameter type keyword
+you’ve never seen, which components should need to change, and which
+should require <strong>zero</strong> changes? (A good architecture
+should make the honest answer “almost nothing needs to change, except
+perhaps adding support for one new type-keyword in the Schema Constraint
+Resolver.”)</li>
+<li>Why does the Output Assembler still validate the result even though
+the decoding engine is supposed to already guarantee validity?</li>
+</ul>
+<hr />
+<h2
+id="phase-11-data-models-pydantic-contracts-specified-not-coded">PHASE
+11 — Data Models (Pydantic Contracts, Specified Not Coded)</h2>
+<h3 id="goal-10">Goal</h3>
+<p>Specify, in words, every pydantic model you’ll need, its fields, and
+its validation rules — so that when you sit down to code, the modeling
+decisions are already made.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Fields (name: type)</th>
+<th>Validation notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>ParameterSpec</code></td>
+<td><code>type: str</code></td>
+<td>Must be one of your supported type keywords (<code>number</code>,
+<code>string</code>, <code>boolean</code>, and any others you decide to
+support — document unsupported-type behavior)</td>
+</tr>
+<tr class="even">
+<td><code>FunctionDefinition</code></td>
+<td><code>name: str</code>, <code>description: str</code>,
+<code>parameters: dict[str, ParameterSpec]</code>,
+<code>returns: ParameterSpec</code></td>
+<td><code>name</code> should be non-empty; consider a light validator
+ensuring uniqueness of <code>name</code> across the catalog</td>
+</tr>
+<tr class="odd">
+<td><code>FunctionCatalog</code></td>
+<td><code>functions: list[FunctionDefinition]</code></td>
+<td>Non-empty check (with a clear error if empty), used everywhere a
+“given the catalog, decide…” operation happens</td>
+</tr>
+<tr class="even">
+<td><code>PromptRequest</code></td>
+<td><code>prompt: str</code></td>
+<td>Non-empty-string check optional (subject explicitly tests empty
+strings as an edge case — decide: do you <em>reject</em> an empty
+prompt, or attempt to process it and let the LLM/engine handle it
+gracefully? Document either choice.)</td>
+</tr>
+<tr class="odd">
+<td><code>FunctionCallResult</code></td>
+<td><code>prompt: str</code>, <code>name: str</code>,
+<code>parameters: dict[str, Any]</code></td>
+<td>This is your literal output-record shape (§V.4) — should mirror it
+exactly, no more/fewer fields</td>
+</tr>
+<tr class="even">
+<td><code>GenerationConfig</code> <em>(optional)</em></td>
+<td><code>functions_definition_path: Path</code>,
+<code>input_path: Path</code>, <code>output_path: Path</code></td>
+<td>Central place resolved CLI args land as one validated object passed
+downward</td>
+</tr>
+</tbody>
+</table>
+<p>Decide now (and write into your README’s “Design decisions” section
+later) how you will represent the <strong>type keyword → Python/JSON
+type</strong> mapping — this single mapping table is used by both the
+Schema Constraint Resolver (Phase 10, component F.2) and the final
+Output Assembler validation (component G). Keeping it in exactly one
+place avoids the classic bug of “my decoder allowed X but my validator
+rejects X” drift.</p>
+<h3 id="checkpoint-questions-10">Checkpoint questions</h3>
+<ul>
+<li>Why should <code>FunctionCallResult</code> be a pydantic model
+rather than a raw <code>dict</code>, even though the output file is
+“just JSON” at the end?</li>
+<li>Where exactly does the type-keyword mapping table live, and why must
+it not be duplicated?</li>
+</ul>
+<hr />
+<h2 id="phase-12-task-breakdown-suggested-build-order">PHASE 12 — Task
+Breakdown &amp; Suggested Build Order</h2>
+<h3 id="goal-11">Goal</h3>
+<p>A concrete, ordered checklist of implementation tasks — the sequence
+you should actually code in, so you always have something runnable and
+testable at each step, rather than a mountain of code that only “works”
+at the very end.</p>
+<blockquote>
+<p>Reminder: <strong>you</strong> implement each task. This is the
+outline of <em>what</em> and <em>in what order</em>, never <em>how</em>
+(no code).</p>
+</blockquote>
+<ol type="1">
+<li><strong>Scaffolding.</strong> Create <code>src/</code>,
+<code>pyproject.toml</code>, <code>.gitignore</code>, empty Makefile
+targets that at least run without error (<code>install</code>,
+<code>run</code>, <code>debug</code>, <code>clean</code>,
+<code>lint</code>), copy <code>llm_sdk/</code> in.</li>
+<li><strong>CLI + Config.</strong> Argument parsing with defaults;
+verify <code>uv run python -m src    --help</code> works and prints
+something sane; no real logic yet.</li>
+<li><strong>Data models.</strong> Write the pydantic models from Phase
+11, with no loaders yet — just the shapes, verified with a few
+hand-written throwaway examples.</li>
+<li><strong>Loaders.</strong> Implement Function Definitions Loader and
+Prompts Loader; test against the two example files in the subject, and
+against deliberately broken files (missing, malformed) to confirm clean
+error messages.</li>
+<li><strong>Vocabulary Manager.</strong> Load the vocab file via the
+SDK; write a tiny sanity check that a handful of token IDs decode to the
+strings you expect.</li>
+<li><strong>Grammar/State Tracker (F.1) in isolation.</strong> Before
+touching the model at all, hand-test your state tracker against
+hand-written candidate strings (e.g., “is <code>{</code> legal in the
+initial state? is <code>}</code> legal right after <code>{</code>? is
+<code>,</code> legal right after a closed string value?”) — this
+component can and should be fully verified <em>without</em> ever calling
+the LLM.</li>
+<li><strong>Schema Constraint Resolver (F.2) in isolation.</strong> Same
+idea — test against a hand-built tiny fake <code>FunctionCatalog</code>,
+no model involved yet.</li>
+<li><strong>Wire F.1+F.2 into the Logit Masker + Token Selector
+(F.3+F.4), with a <em>fake</em> logits source</strong> (e.g., a stub
+returning random logits) just to prove the masking mechanics work
+end-to-end without waiting on real model inference.</li>
+<li><strong>Integrate the real LLM SDK</strong> into the Generation Loop
+Driver (F.5). Run against a single trivial prompt (e.g., “What is the
+sum of 2 and 3?”) and manually inspect the raw generated text.</li>
+<li><strong>Output Assembler + Writer.</strong> Wire the loop’s output
+into the final file format; run the full pipeline end-to-end on the
+subject’s example files.</li>
+<li><strong>Batch over all prompts + timing.</strong> Confirm the full
+example test set completes well within 5 minutes; start
+profiling/optimizing only if needed.</li>
+<li><strong>Edge case hardening.</strong> Deliberately feed: empty
+prompt list, missing files, malformed JSON, an ambiguous prompt, a
+prompt requiring a function with multiple parameters, large numbers,
+special characters in strings.</li>
+<li><strong>Lint/type-check pass.</strong> Run <code>make lint</code>
+(and <code>lint-strict</code> if attempting it) until clean.</li>
+<li><strong>Tests (not graded, but strongly recommended per
+§IV.3).</strong> Write <code>pytest</code> coverage for the isolated
+components (steps 6, 7) at minimum — these are the cheapest,
+highest-value tests since they don’t need the model.</li>
+<li><strong>README.</strong> Write it last, once every design decision
+is actually final, so it accurately documents what you built rather than
+what you planned to build.</li>
+<li><strong>Bonus features</strong>, only after 1–15 are solid and
+documented.</li>
+</ol>
+<h3 id="checkpoint-questions-11">Checkpoint questions</h3>
+<ul>
+<li>Why is step 6 (grammar tracker) tested <em>before</em> step 9 (real
+LLM integration), even though the LLM is “the interesting part”?</li>
+<li>What’s the risk of writing the README first vs. last?</li>
+</ul>
+<hr />
+<h2 id="phase-13-testing-validation-strategy">PHASE 13 — Testing &amp;
+Validation Strategy</h2>
+<h3 id="goal-12">Goal</h3>
+<p>Know, precisely, what “done and correct” looks like for each layer,
+before you declare victory.</p>
+<h3 id="layered-testing-pyramid-for-this-project">13.1 — Layered testing
+pyramid for this project</h3>
+<ul>
+<li><strong>Unit level (fast, no model needed)</strong>: grammar/state
+tracker legality checks; schema constraint resolver legality checks;
+pydantic model validation edge cases; logit-masking function given a
+synthetic logits array.</li>
+<li><strong>Integration level (slow-ish, needs the model)</strong>: full
+generation loop on a handful of hand-picked prompts covering each type
+of parameter (number, string, boolean if supported) and each function in
+the example catalog.</li>
+<li><strong>System / end-to-end level</strong>: full CLI invocation
+against the actual <code>data/input/</code> files, checked against every
+rule in §V.4.2, plus a timing measurement against the 5-minute
+budget.</li>
+<li><strong>Edge-case sweep</strong> (explicitly named by the subject,
+§V.6): empty strings, large numbers, special characters, wrong types (a
+prompt implying a type mismatch — how do you coerce or reject?),
+ambiguous prompts, multi-parameter functions.</li>
+</ul>
+<h3
+id="a-validation-checklist-to-run-against-every-generated-output-file">13.2
+— A validation checklist to run against every generated output file</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>json.load()</code> succeeds
+without exception.</label></li>
+<li><label><input
+type="checkbox" /><code>isinstance(data, list)</code>.</label></li>
+<li><label><input type="checkbox" />Every element has exactly the 3
+required keys, no more, no less.</label></li>
+<li><label><input type="checkbox" />Every <code>name</code> is present
+in the function catalog.</label></li>
+<li><label><input type="checkbox" />Every <code>parameters</code> key
+matches that function’s declared parameter names exactly (no missing, no
+extra).</label></li>
+<li><label><input type="checkbox" />Every parameter value’s Python type
+matches what its declared JSON type implies.</label></li>
+<li><label><input type="checkbox" />Total prompt count in output equals
+total prompt count in input (unless you’ve documented a different policy
+for unresolvable prompts).</label></li>
+</ul>
+<h3 id="checkpoint-questions-12">Checkpoint questions</h3>
+<ul>
+<li>Why should the majority of your grammar/schema tests avoid touching
+the actual LLM at all?</li>
+<li>What does it mean, precisely, for your project to satisfy “90%+
+accuracy” versus “100% valid JSON” as two independently measurable
+numbers, and how would you measure each one yourself before
+submitting?</li>
+</ul>
+<hr />
+<h2 id="phase-14-readme-submission-readiness">PHASE 14 — README &amp;
+Submission Readiness</h2>
+<h3 id="goal-13">Goal</h3>
+<p>Treat documentation and submission hygiene as first-class
+deliverables, not afterthoughts, since the subject grades them
+explicitly (Ch. VI, Ch. VIII).</p>
+<h3 id="readme-skeleton-to-fill-in-structure-only-per-phase-8.7">14.1 —
+README skeleton to fill in (structure only, per Phase 8.7)</h3>
+<ol type="1">
+<li><em>Italicized 42-curriculum attribution line</em> (exact template,
+first line, no exceptions)</li>
+<li><code>## Description</code></li>
+<li><code>## Instructions</code> (install / run, matching the exact CLI
+contract of §IV.3.2)</li>
+<li><code>## Algorithm Explanation</code> (walk a reader through Phase
+6’s loop, in your own words, applied to your actual implementation)</li>
+<li><code>## Design Decisions</code> (this is where every “open
+question” you resolved in Phase 8.8 gets documented explicitly —
+ambiguous-prompt policy, type-mapping choices, nested-argument support
+or lack thereof, etc.)</li>
+<li><code>## Performance Analysis</code> (measured accuracy %, measured
+timing, and how you verified them)</li>
+<li><code>## Challenges Faced</code></li>
+<li><code>## Testing Strategy</code></li>
+<li><code>## Example Usage</code> (literal commands + literal example
+output)</li>
+<li><code>## Resources</code> (real external references + your AI-usage
+disclosure, matching the spirit of Chapter II)</li>
+</ol>
+<h3 id="final-repository-checklist-ch.-viii">14.2 — Final repository
+checklist (Ch. VIII)</h3>
+<ul class="task-list">
+<li><label><input type="checkbox" /><code>src/</code></label></li>
+<li><label><input type="checkbox" /><code>pyproject.toml</code> +
+<code>uv.lock</code></label></li>
+<li><label><input type="checkbox" /><code>llm_sdk/</code> (copied,
+unmodified public interface usage only)</label></li>
+<li><label><input type="checkbox" /><code>data/input/</code> with
+demonstration files</label></li>
+<li><label><input type="checkbox" /><code>README.md</code></label></li>
+<li><label><input type="checkbox" /><code>.gitignore</code> excluding
+Python artifacts</label></li>
+<li><label><input type="checkbox" /><strong>No <code>data/output/</code>
+committed</strong> (explicitly forbidden — it’s regenerated during
+review)</label></li>
+<li><label><input type="checkbox" /><code>uv sync</code> alone works,
+cleanly, on a fresh clone</label></li>
+<li><label><input type="checkbox" />You can personally perform a “small
+live modification” on request within a few minutes (Ch. VIII’s
+live-defense expectation) — this is really a proxy for “do you actually
+understand your own architecture,” which is exactly why this course
+pushed you to design the components (Phase 10) with single, clear
+responsibilities: a request like “also support a <code>boolean</code>
+parameter type” or “also record a timestamp field” should be answerable
+by touching one or two components, not by untangling a
+monolith.</label></li>
+</ul>
+<h3 id="checkpoint-questions-13">Checkpoint questions</h3>
+<ul>
+<li>If an evaluator asked you, live, “add a <code>timestamp</code> field
+to every output record,” which single component (per Phase 10’s map)
+would you touch, and why should that be a small, contained change if
+your architecture is sound?</li>
+</ul>
+<hr />
+<h1 id="closing-note">Closing note</h1>
+<p>You now have the full arc: what a model <em>is</em>, how it
+<em>generates</em>, why that generation is unreliable for structured
+tasks by default, the precise mechanical trick (logit masking) that
+fixes it, how JSON’s grammar makes that trick tractable, every explicit
+requirement extracted from the subject, a component-by-component
+architecture with contracts, a build order, and a testing/documentation
+checklist.</p>
+<p>From here, the work is genuinely yours: turning Phase 10’s component
+specifications into real Python, one component at a time, in the order
+given in Phase 12 — testing each in isolation before wiring it to the
+next. Good luck — and if you get stuck on a <em>concept</em> (not asking
+for code), come back and we can dig into that specific phase even
+deeper.</p>
+</body>
+</html>
+
+<footer class="doc-footer">// Prepared by ENNEEX as a self-study companion for the &ldquo;call me maybe&rdquo; function-calling / constrained-decoding project.</footer>
+</main>
+</div>
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var main = document.querySelector("main");
+  if(!main) return;
+
+  /* ---------------------------------------------------------
+     1. Tag every top-level PART (h1) and its following PHASE
+        (h2) headings with a data-part color code (a/b/c),
+        derived from the actual "PART A/B/C" text, so the
+        color-coding is structural, not decorative.
+  --------------------------------------------------------- */
+  var partMap = { "A": "a", "B": "b", "C": "c" };
+  var currentPart = null;
+  Array.prototype.forEach.call(main.children, function(el){
+    if(el.tagName === "H1"){
+      var m = el.textContent.match(/PART\s+([ABC])/i);
+      if(m){ currentPart = partMap[m[1].toUpperCase()]; }
+      if(currentPart) el.setAttribute("data-part", currentPart);
+    } else if(el.tagName === "H2" && currentPart){
+      el.setAttribute("data-part", currentPart);
+    }
+  });
+
+  /* ---------------------------------------------------------
+     2. Insert an animated circuit-trace divider under every
+        PHASE (h2) heading — the "current flowing forward"
+        motif marking progress through the course.
+  --------------------------------------------------------- */
+  var partColorVar = { a: "var(--cyan)", b: "var(--magenta)", c: "var(--violet)" };
+  function makeDivider(colorVar){
+    var wrap = document.createElement("div");
+    wrap.className = "circuit-divider";
+    wrap.style.color = colorVar;
+    wrap.innerHTML =
+      '<svg viewBox="0 0 920 22" preserveAspectRatio="none">' +
+      '<path class="base" d="M0,11 H920"/>' +
+      '<path class="flow" stroke="currentColor" d="M0,11 H920"/>' +
+      '</svg>';
+    return wrap;
+  }
+  Array.prototype.slice.call(main.querySelectorAll("h2")).forEach(function(h2){
+    var part = h2.getAttribute("data-part") || "a";
+    h2.insertAdjacentElement("afterend", makeDivider(partColorVar[part]));
+  });
+
+  /* ---------------------------------------------------------
+     3. Wrap recurring sub-section headings (Goal / Core content /
+        Mental model / Checkpoint questions / Link to the project)
+        into styled cards, grouping each heading with the content
+        that follows it up to the next heading of equal-or-higher rank.
+  --------------------------------------------------------- */
+  var CARD_TYPES = {
+    "goal": "card--goal",
+    "core content": "card--core",
+    "mental model": "card--mental",
+    "checkpoint questions": "card--checkpoint",
+    "link to the project": "card--link"
+  };
+  var RANK = { H1: 1, H2: 2, H3: 3, H4: 4 };
+
+  Array.prototype.slice.call(main.querySelectorAll("h3")).forEach(function(h3){
+    var key = h3.textContent.trim().toLowerCase();
+    var cls = CARD_TYPES[key];
+    if(!cls) return;
+    if(h3.closest(".card")) return; // already wrapped
+
+    var wrapper = document.createElement("div");
+    wrapper.className = "card " + cls + " reveal";
+
+    var parent = h3.parentNode;
+    parent.insertBefore(wrapper, h3);
+
+    var node = h3;
+    var stopRank = RANK[h3.tagName];
+    while(node){
+      var next = node.nextSibling;
+      var isBoundary = node !== h3 && node.nodeType === 1 && RANK[node.tagName] && RANK[node.tagName] <= stopRank;
+      if(isBoundary) break;
+      wrapper.appendChild(node);
+      node = next;
+    }
+  });
+
+  /* ---------------------------------------------------------
+     4. Reveal-on-scroll for headings and cards.
+  --------------------------------------------------------- */
+  var revealTargets = main.querySelectorAll(".card, h2, h1");
+  revealTargets.forEach ? revealTargets.forEach(addReveal) : Array.prototype.forEach.call(revealTargets, addReveal);
+  function addReveal(el){ if(!el.classList.contains("card")) el.classList.add("reveal"); }
+
+  if(!reduceMotion && "IntersectionObserver" in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add("in-view");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: "0px 0px -40px 0px" });
+    document.querySelectorAll(".reveal, .card").forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll(".reveal, .card").forEach(function(el){ el.classList.add("in-view"); });
+  }
+
+  /* ---------------------------------------------------------
+     5. Scroll progress bar.
+  --------------------------------------------------------- */
+  var bar = document.getElementById("progress-bar");
+  function updateProgress(){
+    var h = document.documentElement;
+    var scrollTop = h.scrollTop || document.body.scrollTop;
+    var height = (h.scrollHeight - h.clientHeight) || 1;
+    var pct = Math.min(100, (scrollTop / height) * 100);
+    if(bar) bar.style.width = pct + "%";
+  }
+  document.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
+
+  /* ---------------------------------------------------------
+     6. Scrollspy — highlight the active TOC entry.
+  --------------------------------------------------------- */
+  var headings = Array.prototype.slice.call(main.querySelectorAll("h1[id], h2[id]"));
+  var tocLinks = {};
+  document.querySelectorAll("#TOC a[href^='#']").forEach(function(a){
+    tocLinks[a.getAttribute("href").slice(1)] = a;
+  });
+
+  function setActive(id){
+    document.querySelectorAll("#TOC li.active").forEach(function(li){ li.classList.remove("active"); });
+    var link = tocLinks[id];
+    if(!link) return;
+    var li = link.closest("li");
+    while(li){
+      li.classList.add("active");
+      var parentUl = li.parentElement;
+      li = parentUl ? parentUl.closest("li") : null;
+    }
+    if(link.scrollIntoViewIfNeeded){ /* no-op fallback */ }
+  }
+
+  if("IntersectionObserver" in window){
+    var spy = new IntersectionObserver(function(entries){
+      var visible = entries.filter(function(e){ return e.isIntersecting; });
+      if(visible.length){
+        visible.sort(function(a,b){ return a.boundingClientRect.top - b.boundingClientRect.top; });
+        setActive(visible[0].target.id);
+      }
+    }, { rootMargin: "-10% 0px -70% 0px", threshold: 0 });
+    headings.forEach(function(h){ spy.observe(h); });
+  }
+
+  /* ---------------------------------------------------------
+     7. Checklist persistence (localStorage) + progress meter.
+  --------------------------------------------------------- */
+  var checkboxes = Array.prototype.slice.call(main.querySelectorAll('ul.task-list input[type="checkbox"]'));
+  var STORAGE_KEY = "cmm-course-progress-v1";
+
+  function loadState(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+    catch(e){ return {}; }
+  }
+  function saveState(state){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+  function keyFor(idx){ return "cb-" + idx; }
+
+  var state = loadState();
+  checkboxes.forEach(function(cb, idx){
+    cb.dataset.idx = idx;
+    if(state[keyFor(idx)]) cb.checked = true;
+    cb.addEventListener("change", function(){
+      state[keyFor(idx)] = cb.checked;
+      saveState(state);
+      updateProgressMeter();
+    });
+  });
+
+  var progressBarInner = document.querySelector("#TOC-progress .bar > span");
+  var progressLabel = document.getElementById("TOC-progress-label");
+  function updateProgressMeter(){
+    if(!checkboxes.length) return;
+    var done = checkboxes.filter(function(cb){ return cb.checked; }).length;
+    var pct = Math.round((done / checkboxes.length) * 100);
+    if(progressBarInner) progressBarInner.style.width = pct + "%";
+    if(progressLabel) progressLabel.textContent = pct + "%";
+  }
+  updateProgressMeter();
+
+  var resetBtn = document.getElementById("TOC-reset");
+  if(resetBtn){
+    resetBtn.addEventListener("click", function(){
+      if(!confirm("Reset all checklist progress?")) return;
+      state = {};
+      saveState(state);
+      checkboxes.forEach(function(cb){ cb.checked = false; });
+      updateProgressMeter();
+    });
+  }
+
+  /* ---------------------------------------------------------
+     8. Mobile sidebar toggle.
+  --------------------------------------------------------- */
+  var toggle = document.getElementById("TOC-toggle");
+  var toc = document.getElementById("TOC");
+  if(toggle && toc){
+    toggle.addEventListener("click", function(){ toc.classList.toggle("open"); });
+    toc.querySelectorAll("a").forEach(function(a){
+      a.addEventListener("click", function(){ toc.classList.remove("open"); });
+    });
+  }
+})();
+
+</script>
+</body>
+</html>
