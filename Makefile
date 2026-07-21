@@ -9,6 +9,9 @@ all: run
 install:
 	uv sync
 
+debug:
+	python3 run pdb
+
 run:
 	$(PYTHON) $(ENTRY)
 
