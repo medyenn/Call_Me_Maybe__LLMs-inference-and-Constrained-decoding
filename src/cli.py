@@ -1,9 +1,8 @@
 from argparse import ArgumentParser, Namespace
-
 from .models import Config
 
 
-def parse_args() -> Namespace:
+def args_parser() -> Namespace:
     """Parse command-line arguments.
 
     Returns:
@@ -12,7 +11,8 @@ def parse_args() -> Namespace:
     """
     parser = ArgumentParser(
         prog="python -m src",
-        description="Translate natural language prompts into structured function calls.",
+        description="Translate natural language"
+        "prompts into structured function calls.",
     )
     parser.add_argument(
         "--functions_definition",
@@ -45,7 +45,7 @@ def build_config() -> Config:
     Returns:
         A validated Config instance.
     """
-    namespace_obj = parse_args()
+    namespace_obj = args_parser()
     overrides = {k: v for k, v in vars(namespace_obj).items() if v is not None}
     return Config(**overrides)
 
