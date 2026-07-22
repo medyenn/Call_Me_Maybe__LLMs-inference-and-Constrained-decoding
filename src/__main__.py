@@ -1,3 +1,8 @@
+from .cli import main
+
+if __name__ == "__main__":
+    main()
+
 # from llm_sdk.llm_sdk import Small_LLM_Model
 
 # model = Small_LLM_Model()
