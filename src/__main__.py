@@ -1,8 +1,8 @@
-from .loader import fcts_loader, prompt_loader, vocab_loader
-from .models import Config
+from .loader import vocab_loader  # fcts_loader, prompt_loader
+# from .models import Config
 from llm_sdk.llm_sdk import Small_LLM_Model
-
 # uv run python -m src
+
 
 def main():
 
@@ -31,7 +31,7 @@ main()
 #     PromptItem,
 # )
 
-# # --- 1. Build a FunctionDefinition matching fn_add_numbers from the subject ---
+# # --- 1. Build a FunctionDefinition matching fn_add_numbers from the subject
 # add_numbers = FunctionDefinition(
 #     name="fn_add_numbers",
 #     description="Add two numbers together.",
@@ -45,7 +45,8 @@ main()
 # print(add_numbers)
 # print()
 
-# # --- 2. Build a second one, e.g. fn_greet, to prove the dict/list shapes work ---
+# # --- 2. Build a second one, e.g. fn_greet, to prove the dict/list shapes
+# work
 # greet = FunctionDefinition(
 #     name="fn_greet",
 #     description="Greet someone by name.",
