@@ -1,15 +1,22 @@
-from .loader import fcts_loader, prompt_loader
+from .loader import fcts_loader, prompt_loader, vocab_loader
 from .models import Config
+from llm_sdk.llm_sdk import Small_LLM_Model
 
+# uv run python -m src
 
 def main():
 
-    config = Config(
-        functions_definition='data/input/functions_definition.json',
-        input='data/input/function_calling_tests.json'
-        )
-    print((5 * '\n'), fcts_loader(config.functions_definition))
-    print((5 * '\n'),  prompt_loader(config.input))
+    sdk = Small_LLM_Model()
+    vocab = vocab_loader(sdk)
+    print(len(vocab.id_to_token), "tokens loaded")
+    for token_id in [0, 1, 100, 5000]:
+        print(token_id, "->", repr(vocab.id_to_token[token_id]))
+    # config = Config(
+    #     functions_definition='data/input/functions_definition.json',
+    #     input='data/input/function_calling_tests.json'
+    #     )
+    # print((5 * '\n'), fcts_loader(config.functions_definition))
+    # print((5 * '\n'),  prompt_loader(config.input))
 
 
 main()
