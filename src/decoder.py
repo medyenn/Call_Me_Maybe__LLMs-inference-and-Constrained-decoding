@@ -23,13 +23,13 @@ class SchemaState:
     catalog: FunctionCatalog
     phase: SchemaPhase = SchemaPhase.NAME_VALUE
 
-    name_prefix: str = ""                 # chars typed so far of the function name
+    name_prefix: str = ""  # chars typed so far of the function name
     selected: FunctionDefinition | None = None
 
     remaining_params: set[str] = field(default_factory=set)
-    key_prefix: str = ""                  # chars typed so far of current param key
+    key_prefix: str = ""  # chars typed so far of current param key
     current_param_type: ParamType | None = None
-    value_prefix: str = ""                # chars typed so far of current param VALUE
+    value_prefix: str = ""  # chars typed so far of current param VALUE
 
 
 class Pos(Enum):
