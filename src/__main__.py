@@ -2,9 +2,9 @@ import time
 
 from llm_sdk.llm_sdk import Small_LLM_Model
 
-from src.models import Config, FunctionCatalog
-from src.loader import fcts_loader, vocab_loader
-from src.test_decoder import generate_function_call
+from .models import Config, FunctionCatalog
+from .loader import fcts_loader, vocab_loader
+from .decoder import generate_function_call
 
 
 def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
