@@ -229,7 +229,7 @@ def schema_resolver(
     if (
         f2.collecting == "root_key"
         and prev_top == Pos.IN_STRING
-        and char not in ('"', "\\")
+        and char != '"'
     ):
         expected = _ROOT_KEYS[f2.root_key_index]
         if not expected.startswith(f2.buffer + char):
@@ -322,7 +322,7 @@ def schema_resolver(
     if (prev_top in (Pos.OBJ_KEY_OR_CLOSE, Pos.OBJ_KEY)
             and char == '"' and in_params):
         f2.collecting, f2.buffer = "key", ""
-    if prev_top == Pos.IN_STRING and char not in ('"', "\\") and f2.collecting:
+    if prev_top == Pos.IN_STRING and char != '"' and f2.collecting:
         f2.buffer += char
     if prev_top == Pos.IN_STRING and char == '"':
         if f2.collecting == "name":
