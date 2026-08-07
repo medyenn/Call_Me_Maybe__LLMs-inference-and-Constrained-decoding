@@ -27,10 +27,6 @@ class Pos(Enum):
     IN_NUMBER = auto()
 
 
-def initial_state() -> list:
-    return [Pos.ROOT]
-
-
 def _is_value_start(char: str) -> bool:
     return char == '"' or char in "{[-" or char.isdigit() or char in _LITERALS
 
@@ -199,10 +195,6 @@ class SchemaState:
     buffer: str = ""
     root_key_index: int = 0
     expect_params_object: bool = False
-
-
-def initial_schema_state(catalog: FunctionCatalog) -> SchemaState:
-    return SchemaState(catalog=catalog)
 
 
 def _value_start_allowed(param_type: str, char: str) -> bool:
@@ -450,7 +442,7 @@ def generate_function_call(
         if input_ids and isinstance(input_ids[0], list):
             input_ids = input_ids[0]
 
-    f1, f2 = initial_state(), initial_schema_state(catalog)
+    f1, f2 = [Pos.ROOT], SchemaState(catalog=catalog)
     generated_text = ""
 
     for _ in range(max_new_tokens):

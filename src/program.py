@@ -2,9 +2,9 @@ import time
 
 from llm_sdk.llm_sdk import Small_LLM_Model
 
-from models import Config
-from loader import fcts_loader, vocab_loader
-from test_decoder import generate_function_call
+from src.models import Config
+from src.loader import fcts_loader, vocab_loader
+from src.test_decoder import generate_function_call
 
 
 def build_prompt(user_question: str, catalog) -> str:
@@ -39,7 +39,7 @@ prompt = "What is the result of adding 2 and 3?"
 
 print(f"\nGenerating for prompt: {prompt!r}")
 t0 = time.time()
-text = generate_function_call(sdk, vocab, catalog, build_prompt(prompt))
+text = generate_function_call(sdk, vocab, catalog, build_prompt(prompt, catalog))
 elapsed = time.time() - t0
 
 print(f"\nGenerated in {elapsed:.1f}s:")
