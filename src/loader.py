@@ -6,7 +6,7 @@ from .models import FunctionCatalog, PromptItem
 from typing import Any
 
 
-def json_loader(path: Path) -> dict | list:
+def json_loader(path: Path) -> Any:
     """..."""
 
     if path.exists():

@@ -1,6 +1,0 @@
-def output_assembler():
-    ...
-
-
-def output_writer():
-    ...

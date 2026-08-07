@@ -1,13 +1,13 @@
 import time
 
-from llm_sdk.llm_sdk import Small_LLM_Model  # type: ignore
+from llm_sdk.llm_sdk import Small_LLM_Model
 
-from src.models import Config
+from src.models import Config, FunctionCatalog
 from src.loader import fcts_loader, vocab_loader
 from src.test_decoder import generate_function_call
 
 
-def build_prompt(user_question: str, catalog) -> str:
+def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
     functions_desc = "\n".join(
         f"- {fn.name}({', '.join(fn.parameters)}): {fn.description}"
         for fn in catalog.functions

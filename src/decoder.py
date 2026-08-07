@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field, replace
+from typing import List, Tuple
 from enum import Enum, auto
 
 from .models import FunctionCatalog, FunctionDefinition, ParamType
@@ -31,7 +32,7 @@ def _is_value_start(char: str) -> bool:
     return char == '"' or char in "{[-" or char.isdigit() or char in _LITERALS
 
 
-def _descend(stack: list, char: str):
+def _descend(stack: list, char: str) -> List | None:
     if char == "{":
         stack.append(Pos.OBJ_KEY_OR_CLOSE)
     elif char == "[":
@@ -51,7 +52,7 @@ def _descend(stack: list, char: str):
     return stack
 
 
-def state_tracker(state: list, char: str):
+def state_tracker(state: list, char: str) -> List | None:
     stack = list(state)
     top = stack[-1]
 
@@ -207,7 +208,9 @@ def _value_start_allowed(param_type: str, char: str) -> bool:
     return False
 
 
-def schema_resolver(f1_state: list, f2: SchemaState, char: str):
+def schema_resolver(
+            f1_state: list,
+            f2: SchemaState, char: str) -> Tuple[List, SchemaState] | None:
     prev_top = f1_state[-1]
     in_params = f2.params_depth is not None and (
         len(f1_state) == f2.params_depth)
@@ -361,7 +364,7 @@ def build_vocab_trie(id_to_token: dict) -> dict:
     return root
 
 
-def _state_key(f1_state: list, f2: SchemaState):
+def _state_key(f1_state: list, f2: SchemaState):  # type: ignore
     """A hashable snapshot of (f1, f2) — cache key so an identical
     (state, char) transition is never computed twice."""
     return (
@@ -394,7 +397,7 @@ def logit_masker(
 
     legal_ids: list = []
 
-    def walk(node, state1, state2):
+    def walk(node: dict, state1: list, state2: SchemaState) -> None:
         terminal = node.get(None)
         if terminal:
             legal_ids.extend(terminal)
