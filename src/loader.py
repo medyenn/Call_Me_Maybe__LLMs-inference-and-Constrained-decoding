@@ -14,10 +14,10 @@ def json_loader(path: Path) -> dict | list:
             try:
                 return json.load(f)
             except json.JSONDecodeError as e:
-                print(f'Invalid JSON format: {e.msg}', file=sys.stderr)
+                print(f"Invalid JSON format: {e.msg}", file=sys.stderr)
                 sys.exit(1)
             except OSError as e:
-                print(f'{e}')
+                print(f"{e}")
     print(f'The Path "{path}" Doese NOT Exist!', file=sys.stderr)
     sys.exit(1)
 
@@ -51,7 +51,7 @@ class VocabularyManager(pydantic.BaseModel):
 
 def vocab_loader(sdk: Any) -> VocabularyManager:
     """Load the tokenizer vocabulary via the SDK and
-        build id<->token lookups."""
+    build id<->token lookups."""
     vocab_path = Path(sdk.get_path_to_vocab_file())
     raw_vocab = json_loader(vocab_path)
 

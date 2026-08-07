@@ -19,21 +19,21 @@ def args_parser() -> Namespace:
         default=None,
         type=str,
         help="Path to the function definitions JSON file "
-             "(default: data/input/functions_definition.json)",
+        "(default: data/input/functions_definition.json)",
     )
     parser.add_argument(
         "--input",
         default=None,
         type=str,
         help="Path to the input prompts JSON file "
-             "(default: data/input/function_calling_tests.json)",
+        "(default: data/input/function_calling_tests.json)",
     )
     parser.add_argument(
         "--output",
         default=None,
         type=str,
         help="Path to write the output JSON file "
-             "(default: data/output/function_calls.json)",
+        "(default: data/output/function_calls.json)",
     )
     return parser.parse_args()
 

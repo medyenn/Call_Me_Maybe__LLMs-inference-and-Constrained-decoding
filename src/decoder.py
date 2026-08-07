@@ -2,16 +2,16 @@ from enum import Enum, auto
 from dataclasses import dataclass, field
 from .models import FunctionCatalog, FunctionDefinition, ParamType
 
-
-_LITERALS = {'t': 'true', 'f': 'false', 'n': 'null'}
+_LITERALS = {"t": "true", "f": "false", "n": "null"}
 
 
 class SchemaPhase(Enum):
     """Where we are in the FIXED shape: {"name": ..., "parameters": {...}}."""
-    NAME_VALUE = auto()     # currently typing characters of the function name
-    PARAM_KEY = auto()      # currently typing a parameter key's characters
-    PARAM_VALUE = auto()    # currently typing a parameter value
-    BETWEEN = auto()        # not currently inside name/key/value (e.g. right
+
+    NAME_VALUE = auto()  # currently typing characters of the function name
+    PARAM_KEY = auto()  # currently typing a parameter key's characters
+    PARAM_VALUE = auto()  # currently typing a parameter value
+    BETWEEN = auto()  # not currently inside name/key/value (e.g. right
     # after a key closes, waiting for ':' — F1 already
     # enforces the punctuation, F2 has nothing to add here)
     DONE = auto()  # function fully resolved, nothing left to constrain
@@ -20,6 +20,7 @@ class SchemaPhase(Enum):
 @dataclass
 class SchemaState:
     """F2's state, tracked alongside (not instead of) F1's stack."""
+
     catalog: FunctionCatalog
     phase: SchemaPhase = SchemaPhase.NAME_VALUE
 
@@ -35,6 +36,7 @@ class SchemaState:
 class Pos(Enum):
     """One flat list of every position the tracker can be in.
     The whole tracker state is just a stack (list) of these."""
+
     ROOT = auto()
     ROOT_DONE = auto()
     OBJ_KEY_OR_CLOSE = auto()
@@ -63,20 +65,20 @@ def initial_schema_state(catalog: FunctionCatalog) -> SchemaState:
 
 def _is_value_start(char: str) -> bool:
     """Whether `char` can legally begin a JSON value."""
-    return char == '"' or char in '{[-' or char.isdigit() or char in _LITERALS
+    return char == '"' or char in "{[-" or char.isdigit() or char in _LITERALS
 
 
 def _descend(stack: list, char: str):
     """`char` legally begins a value; the caller has ALREADY updated the
     top of the stack to what it becomes once this value finishes.
     Push what it means to now be 'inside' this new value."""
-    if char == '{':
+    if char == "{":
         stack.append(Pos.OBJ_KEY_OR_CLOSE)
-    elif char == '[':
+    elif char == "[":
         stack.append(Pos.ARR_VALUE_OR_CLOSE)
     elif char == '"':
         stack.append(Pos.IN_STRING)
-    elif char == '-':
+    elif char == "-":
         stack.append((Pos.IN_NUMBER, "start_needs_digit"))
     elif char.isdigit():
         stack.append((Pos.IN_NUMBER, "digits"))
@@ -115,7 +117,7 @@ def step(state: list, char: str):
             if extra == "digits":
                 if char.isdigit():
                     return stack
-                if char == '.':
+                if char == ".":
                     stack[-1] = (Pos.IN_NUMBER, "dot_needs_digit")
                     return stack
                 stack.pop()
@@ -136,7 +138,7 @@ def step(state: list, char: str):
         return None
 
     if top == Pos.IN_STRING:
-        if char == '\\':
+        if char == "\\":
             stack[-1] = Pos.IN_STRING_ESCAPE
             return stack
         if char == '"':
@@ -148,7 +150,7 @@ def step(state: list, char: str):
         stack[-1] = Pos.IN_STRING
         return stack
 
-    if char in ' \t\n\r':
+    if char in " \t\n\r":
         return stack
 
     if top == Pos.ROOT:
@@ -165,7 +167,7 @@ def step(state: list, char: str):
             stack[-1] = Pos.OBJ_COLON
             stack.append(Pos.IN_STRING)
             return stack
-        if char == '}':
+        if char == "}":
             stack.pop()
             return stack
         return None
@@ -178,7 +180,7 @@ def step(state: list, char: str):
         return None
 
     if top == Pos.OBJ_COLON:
-        if char == ':':
+        if char == ":":
             stack[-1] = Pos.OBJ_VALUE
             return stack
         return None
@@ -190,10 +192,10 @@ def step(state: list, char: str):
         return None
 
     if top == Pos.OBJ_COMMA_OR_CLOSE:
-        if char == ',':
+        if char == ",":
             stack[-1] = Pos.OBJ_KEY
             return stack
-        if char == '}':
+        if char == "}":
             stack.pop()
             return stack
         return None
@@ -202,7 +204,7 @@ def step(state: list, char: str):
         if _is_value_start(char):
             stack[-1] = Pos.ARR_COMMA_OR_CLOSE
             return _descend(stack, char)
-        if char == ']':
+        if char == "]":
             stack.pop()
             return stack
         return None
@@ -214,10 +216,10 @@ def step(state: list, char: str):
         return None
 
     if top == Pos.ARR_COMMA_OR_CLOSE:
-        if char == ',':
+        if char == ",":
             stack[-1] = Pos.ARR_VALUE
             return stack
-        if char == ']':
+        if char == "]":
             stack.pop()
             return stack
         return None
@@ -230,7 +232,8 @@ def schema_step(state: SchemaState, char: str) -> SchemaState | None:
 
     if state.phase == SchemaPhase.NAME_VALUE:
         candidates = [
-            fn.name for fn in state.catalog.functions
+            fn.name
+            for fn in state.catalog.functions
             if fn.name.startswith(state.name_prefix + char)
         ]
         if not candidates:
@@ -263,6 +266,7 @@ def schema_step(state: SchemaState, char: str) -> SchemaState | None:
 
 
 if __name__ == "__main__":
+
     def run(text):
         state = initial_state()
         for c in text:

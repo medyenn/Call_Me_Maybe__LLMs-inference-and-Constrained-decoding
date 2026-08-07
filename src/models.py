@@ -2,7 +2,6 @@ from pydantic import BaseModel, StrictBool, StrictStr, model_validator
 from pathlib import Path
 from typing import Literal, Union
 
-
 ParamType = Literal["string", "number", "integer", "boolean"]
 ParamValue = Union[StrictBool, float, StrictStr]
 
@@ -15,9 +14,9 @@ class Config(BaseModel):
     live here and nowhere else.
     """
 
-    functions_definition: Path = Path('data/input/functions_definition.json')
-    input: Path = Path('data/input/function_calling_tests.json')
-    output: Path = Path('data/output/function_calls.json')
+    functions_definition: Path = Path("data/input/functions_definition.json")
+    input: Path = Path("data/input/function_calling_tests.json")
+    output: Path = Path("data/output/function_calls.json")
 
 
 class ParameterSpec(BaseModel):

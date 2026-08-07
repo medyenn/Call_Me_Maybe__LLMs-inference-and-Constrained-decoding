@@ -1,5 +1,3 @@
-
-
 class InputFileError(Exception):
     ...
 
