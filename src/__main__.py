@@ -35,7 +35,7 @@ catalog = fcts_loader(config.functions_definition)
 print(f"Catalog loaded: {[fn.name for fn in catalog.functions]}")
 
 # 4 Run constrained generation on one trivial prompt
-prompt = "Replace all numbers in \"Hello 34 I'm 233 years old\" with NUMBERS"
+prompt = "What is the sum of 265 and 345?"
 
 print(f"\nGenerating for prompt: {prompt!r}")
 t0 = time.time()

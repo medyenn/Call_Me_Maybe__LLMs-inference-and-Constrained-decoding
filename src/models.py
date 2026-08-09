@@ -2,7 +2,7 @@ from pydantic import BaseModel, StrictBool, StrictStr, model_validator
 from pathlib import Path
 from typing import Literal, Union
 
-ParamType = Literal["string", "number", "integer", "boolean"]
+ParamType = Literal["string", "number", "object", "boolean"]
 ParamValue = Union[StrictBool, float, StrictStr]
 
 
