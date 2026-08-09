@@ -15,15 +15,19 @@ step (F.3, Phase 10.3 performance notes).
 """
 
 from dataclasses import dataclass, field, replace
-from typing import Any, List, Protocol, Tuple
+from typing import Any, Protocol, Tuple
 from enum import Enum, auto
 
-from .exceptions import GenerationError
 from .models import FunctionCatalog, FunctionDefinition, ParamType
 
 _LITERALS = {"t": "true", "f": "false", "n": "null"}
 _ROOT_KEYS = ("name", "parameters")
-
+# The only characters JSON allows directly after a backslash inside a
+# string (RFC 8259 sec. 7). Without this check the grammar happily
+# accepts e.g. `\q`, which `json.loads` then rejects downstream --
+# turning a silent generation-time bug into a random-looking
+# "invalid escape" crash at output-assembly time instead.
+_LEGAL_ESCAPE_CHARS = set('"\\/bfnrtu')
 
 # Grammar / State Tracker
 
@@ -45,13 +49,18 @@ class Pos(Enum):
     IN_NUMBER = auto()
 
 
+StateItem = Pos | tuple[Pos, str]
+StateStack = list[StateItem]
+TrieNode = dict[str | None, Any]
+
+
 def _is_value_start(char: str) -> bool:
     """Return True if `char` could legally begin a JSON value (an
     object, array, string, number, or literal)."""
     return char == '"' or char in "{[-" or char.isdigit() or char in _LITERALS
 
 
-def _descend(stack: list, char: str) -> List | None:
+def _descend(stack: StateStack, char: str) -> StateStack | None:
     """Push the state(s) entered by starting a new JSON value with
     `char` (e.g. `{` pushes an "expect key or close" frame).
 
@@ -81,7 +90,7 @@ def _descend(stack: list, char: str) -> List | None:
     return stack
 
 
-def state_tracker(state: list, char: str) -> List | None:
+def state_tracker(state: StateStack, char: str) -> StateStack | None:
     """Advance the pure JSON-grammar state machine by one character.
 
     This is Phase 10's F.1 "Grammar / State Tracker": it knows nothing
@@ -158,6 +167,8 @@ def state_tracker(state: list, char: str) -> List | None:
         return stack
 
     if top == Pos.IN_STRING_ESCAPE:
+        if char not in _LEGAL_ESCAPE_CHARS:
+            return None
         stack[-1] = Pos.IN_STRING
         return stack
 
@@ -264,7 +275,7 @@ class SchemaState:
 
     catalog: FunctionCatalog
     selected: FunctionDefinition | None = None
-    remaining_params: set = field(default_factory=set)
+    remaining_params: set[str] = field(default_factory=set)
     current_param_type: ParamType | None = None
     params_depth: int | None = None
     collecting: str | None = None
@@ -286,8 +297,10 @@ def _value_start_allowed(param_type: str, char: str) -> bool:
 
 
 def schema_resolver(
-            f1_state: list,
-            f2: SchemaState, char: str) -> Tuple[List, SchemaState] | None:
+    f1_state: StateStack,
+    f2: SchemaState,
+    char: str,
+) -> Tuple[StateStack, SchemaState] | None:
     """Advance both the JSON grammar state and the schema state by one
     character, enforcing structural JSON validity AND schema
     compliance together (Phase 5.2 / 10-F.1+F.2 combined).
@@ -351,6 +364,18 @@ def schema_resolver(
         and char not in " \t\n\r"
         and char != '"'
     ):
+        return None
+    if (
+        prev_top == Pos.IN_STRING
+        and char == "\\"
+        and f2.collecting in ("root_key", "name", "key")
+    ):
+        # Function/parameter/root-key identifiers never contain
+        # characters that need escaping. Without this guard, entering
+        # IN_STRING_ESCAPE here would leave `f2.buffer` one character
+        # short (the escaped char is intentionally not buffered) and
+        # the identifier match below would silently desync from what
+        # was actually generated.
         return None
     if (prev_top == Pos.IN_STRING and char != '"'
             and f2.collecting in ("name", "key")):
@@ -436,7 +461,8 @@ def schema_resolver(
             key = f2.buffer
             if key not in f2.remaining_params:
                 return None
-            f2.current_param_type = f2.selected.parameters[key].type
+            f2.current_param_type = (
+                f2.selected.parameters[key].type)  # type: ignore[union-attr]
             f2.remaining_params.discard(key)
             f2.collecting, f2.buffer = None, ""
     if char == "{" and f2.selected is not None and f2.params_depth is None:
@@ -451,7 +477,7 @@ def schema_resolver(
 # Logit Masker (trie-based)
 
 
-def build_vocab_trie(id_to_token: dict[int, str]) -> dict:
+def build_vocab_trie(id_to_token: dict[int, str]) -> TrieNode:
     """Build a char-trie over the vocabulary ONCE, outside the
     generation loop. node[ch] -> child node; node[None] -> token ids
     whose full string ends exactly at this node.
@@ -462,7 +488,7 @@ def build_vocab_trie(id_to_token: dict[int, str]) -> dict:
     Returns:
         The trie's root node.
     """
-    root: dict = {}
+    root: TrieNode = {}
     for token_id, token_str in id_to_token.items():
         node = root
         for ch in token_str:
@@ -471,7 +497,10 @@ def build_vocab_trie(id_to_token: dict[int, str]) -> dict:
     return root
 
 
-def _state_key(f1_state: list, f2: SchemaState) -> tuple[Any, ...]:
+def _state_key(
+    f1_state: StateStack,
+    f2: SchemaState,
+) -> tuple[Any, ...]:
     """A hashable snapshot of (f1, f2) — cache key so an identical
     (state, char) transition is never computed twice."""
     return (
@@ -490,10 +519,10 @@ def _state_key(f1_state: list, f2: SchemaState) -> tuple[Any, ...]:
 
 def logit_masker(
     logits: list[float],
-    trie: dict,
-    f1_state: list,
+    trie: TrieNode,
+    f1_state: StateStack,
     f2: SchemaState,
-    transition_cache: dict | None = None,
+    transition_cache: dict[Any, Any] | None = None,
 ) -> list[float]:
     """F.3 — set every illegal token's logit to -inf, by walking the
     vocab trie instead of simulating each token independently.
@@ -515,9 +544,13 @@ def logit_masker(
     if transition_cache is None:
         transition_cache = {}
 
-    legal_ids: list = []
+    legal_ids: list[int] = []
 
-    def walk(node: dict, state1: list, state2: SchemaState) -> None:
+    def walk(
+        node: TrieNode,
+        state1: StateStack,
+        state2: SchemaState,
+    ) -> None:
         terminal = node.get(None)
         if terminal:
             legal_ids.extend(terminal)
@@ -559,14 +592,14 @@ def token_selector(masked_logits: list[float]) -> int:
         The token ID with the highest surviving logit.
 
     Raises:
-        GenerationError: if every single token is illegal. This
+        RuntimeError: if every single token is illegal. This
             should never happen if the grammar/schema resolver is
             correct; it indicates an internal bug rather than a
             normal per-prompt failure.
     """
     best_id = max(range(len(masked_logits)), key=lambda i: masked_logits[i])
     if masked_logits[best_id] == float("-inf"):
-        raise GenerationError(
+        raise RuntimeError(
             "No legal token survived masking (internal grammar bug)."
         )
     return best_id
@@ -616,11 +649,11 @@ def generate_function_call(
         shape `{"name": ..., "parameters": {...}}`.
 
     Raises:
-        GenerationError: if no legal token exists at some step, or
+        RuntimeError: if no legal token exists at some step, or
             the token budget is exhausted before completion.
     """
     trie = build_vocab_trie(vocab.id_to_token)
-    transition_cache: dict = {}
+    transition_cache: dict[Any, Any] = {}
 
     input_ids = sdk.encode(prompt)
     if hasattr(input_ids, "tolist"):
@@ -628,7 +661,8 @@ def generate_function_call(
         if input_ids and isinstance(input_ids[0], list):
             input_ids = input_ids[0]
 
-    f1, f2 = [Pos.ROOT], SchemaState(catalog=catalog)
+    f1: StateStack = [Pos.ROOT]
+    f2 = SchemaState(catalog=catalog)
     generated_text = ""
 
     for _ in range(max_new_tokens):
@@ -643,7 +677,7 @@ def generate_function_call(
         for char in token_str:
             result = schema_resolver(f1, f2, char)
             if result is None:
-                raise GenerationError(
+                raise RuntimeError(
                     f"Masker selected illegal token {token_str!r} "
                     "(internal grammar bug)."
                 )
@@ -652,7 +686,7 @@ def generate_function_call(
         generated_text += token_str
         input_ids = input_ids + [token_id]
 
-    raise GenerationError(
+    raise RuntimeError(
         f"Hit max_new_tokens={max_new_tokens} without completing a "
         "well-formed function call."
     )

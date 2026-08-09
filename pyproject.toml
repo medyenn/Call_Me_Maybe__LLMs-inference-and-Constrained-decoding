@@ -4,11 +4,7 @@ version = "1.5.0"
 description = "Function calling via constrained decoding on a small LLM (42 curriculum project)."
 requires-python = ">=3.10"
 
-# pydantic/numpy: allowed and used by *our* code (src/).
-# torch/transformers/huggingface-hub: NOT used anywhere in src/. They are
-# required transitively because the provided llm_sdk package (read-only,
-# copied in as-is per the subject) needs them internally to load and run
-# Qwen3-0.6B. We never import them ourselves.
+
 dependencies = [
     "pydantic>=2.13.4",
     "numpy>=1.26",
@@ -17,9 +13,6 @@ dependencies = [
     "huggingface-hub>=0.20.0",
 ]
 
-# This repository is an application, not a library meant to be built and
-# published as a wheel — `uv sync` should only resolve/install the
-# dependencies above into a venv, not try to package src/ or llm_sdk/.
 [tool.uv]
 package = false
 
@@ -29,3 +22,7 @@ dev = [
     "mypy>=1.10.0",
     "pytest>=8.0.0",
 ]
+
+[[tool.mypy.overrides]]
+module = "llm_sdk.*"
+ignore_errors = true

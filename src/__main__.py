@@ -3,9 +3,8 @@ from argparse import ArgumentParser, Namespace
 
 from llm_sdk.llm_sdk import Small_LLM_Model
 
-from .exceptions import CallMeMaybeError
 from .models import Config
-from .orchestrator import run_pipeline
+from .orchestrator import PipelineError, run_pipeline
 
 
 def args_parser() -> Namespace:
@@ -67,13 +66,14 @@ def main() -> None:
         print("Loading model (this can take a while on first run)...")
         sdk = Small_LLM_Model()
         run_pipeline(config, sdk)
-    except CallMeMaybeError as e:
+    except PipelineError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
         # Last-resort safety net: nothing should ever reach here if
-        # every component raises CallMeMaybeError as intended, but
-        # this guarantees we still fail cleanly instead of crashing.
+        # every component raises OSError/ValueError/RuntimeError as
+        # intended, but this guarantees we still fail cleanly instead
+        # of crashing with a raw traceback.
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 

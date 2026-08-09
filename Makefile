@@ -1,44 +1,38 @@
 NAME		= call_me_maybe
-
 PYTHON		= uv run python
 ENTRY		= -m src
 
 all: run
 
 install:
-	uv sync
+	@uv sync
 
-# Run the main script under Python's built-in debugger.
 debug:
-	$(PYTHON) -m pdb $(ENTRY)
+	@$(PYTHON) -m pdb $(ENTRY)
 
-# Forward any extra CLI flags: `make run ARGS="--input foo.json"`.
 run:
-	$(PYTHON) $(ENTRY) $(ARGS)
+	@$(PYTHON) $(ENTRY) $(ARGS)
 
 clean:
-	rm -rf __pycache__
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
-	rm -rf .mypy_cache .pytest_cache .ruff_cache
+	@rm -rf __pycache__
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -type f -name "*.pyc" -delete
+	@rm -rf .mypy_cache .pytest_cache .ruff_cache
 
 re: clean install
 
-# Mandatory lint target (subject IV.2): flake8 + the specified mypy flags.
 lint:
-	uv run flake8 .
-	uv run mypy . --warn-return-any --warn-unused-ignores \
+	@uv run flake8 src
+	@uv run mypy src --warn-return-any --warn-unused-ignores \
 		--ignore-missing-imports --disallow-untyped-defs \
 		--check-untyped-defs
 
-# Optional, stricter variant (subject IV.2).
 lint-strict:
-	uv run flake8 .
-	uv run mypy . --strict
+	@uv run flake8 src
+	@uv run mypy src --strict
 
-# Not graded (subject IV.3), but kept for local development.
 test:
-	uv run pytest
+	@uv run pytest
 
 docs:
 	@echo "Open README.md"

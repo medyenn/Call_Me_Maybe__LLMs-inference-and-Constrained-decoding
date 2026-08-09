@@ -3,8 +3,6 @@ from pydantic import field_validator, model_validator
 from pathlib import Path
 from typing import Literal, Union
 
-from .exceptions import SchemaValidationError
-
 ParamType = Literal["string", "number", "integer", "boolean"]
 
 # Single source of truth (Phase 11) for the type-keyword -> Python type
@@ -80,18 +78,18 @@ class FunctionCatalog(BaseModel):
         name -> FunctionDefinition index used by `get()`.
 
         Raises:
-            SchemaValidationError: if the catalog has zero functions,
-                or two functions share the same name.
+            ValueError: if the catalog has zero functions, or two
+                functions share the same name.
         """
         if not self.functions:
-            raise SchemaValidationError(
+            raise ValueError(
                 "functions_definition.json declares zero functions; "
                 "at least one function is required."
             )
         names = [fn.name for fn in self.functions]
         if len(names) != len(set(names)):
             duplicates = {n for n in names if names.count(n) > 1}
-            raise SchemaValidationError(
+            raise ValueError(
                 f"functions_definition.json has duplicate function "
                 f"name(s): {sorted(duplicates)}"
             )

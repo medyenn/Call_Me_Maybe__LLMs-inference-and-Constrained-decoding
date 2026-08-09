@@ -9,11 +9,18 @@ reports progress/timing relevant to the subject's 5-minute budget
 
 import time
 
+from typing import Any
 from .decoder import generate_function_call
-from .exceptions import CallMeMaybeError
 from .loader import fcts_loader, prompt_loader, vocab_loader
 from .models import Config, FunctionCallResult, FunctionCatalog
 from .output import assemble_result, report_skipped_prompt, write_results
+
+# Every failure path in the pipeline raises one of these three
+# built-in types (see loader.py/output.py/decoder.py docstrings for
+# which is used where), so the orchestrator and CLI only need to
+# catch this one tuple to turn a known, expected failure into a clean
+# message instead of a raw traceback.
+PipelineError = (OSError, ValueError, RuntimeError)
 
 
 def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
@@ -22,7 +29,10 @@ def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
     This text is only ever used for *content* decisions (which
     function, which values) -- it has no bearing on the *validity* of
     the output, which is guaranteed by the constrained-decoding engine
-    regardless of how this prompt is phrased.
+    regardless of how this prompt is phrased. It does, however,
+    influence output *quality*: an explicit instruction not to copy
+    quote marks out of the request, plus one worked example, measurably
+    cuts down on the model echoing stray `'quotes'` into string values.
 
     Args:
         user_question: The natural-language request to fulfill.
@@ -39,11 +49,18 @@ def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
     return (
         f"You have access to these functions:\n{functions_desc}\n\n"
         f"Given the following request, respond with a single JSON "
-        f"function call.\nRequest: {user_question}"
+        f"function call of the form "
+        f'{{"name": "<function_name>", "parameters": {{...}}}}.\n'
+        f"Example: for the request \"Reverse the string 'abc'\", "
+        f'respond {{"name": "fn_reverse_string", "parameters": '
+        f'{{"s": "abc"}}}}.\n'
+        f"Do not include quote marks from the request inside string "
+        f"values -- copy only the underlying word or text itself.\n\n"
+        f"Request: {user_question}"
     )
 
 
-def run_pipeline(config: Config, sdk: object) -> list[FunctionCallResult]:
+def run_pipeline(config: Config, sdk: Any) -> list[FunctionCallResult]:
     """Run the full pipeline end to end and write the output file.
 
     A single prompt that cannot be turned into a valid, schema
@@ -61,9 +78,10 @@ def run_pipeline(config: Config, sdk: object) -> list[FunctionCallResult]:
         same relative order as the input prompts.
 
     Raises:
-        CallMeMaybeError: if a fatal, non-recoverable error occurs
-            (e.g. the function catalog itself cannot be loaded), or
-            the output file cannot be written.
+        OSError / ValueError / RuntimeError: if a fatal,
+            non-recoverable error occurs (e.g. the function catalog
+            itself cannot be loaded), or the output file cannot be
+            written.
     """
     catalog = fcts_loader(config.functions_definition)
     prompts = prompt_loader(config.input)
@@ -82,7 +100,7 @@ def run_pipeline(config: Config, sdk: object) -> list[FunctionCallResult]:
                 sdk, vocab, catalog, build_prompt(item.prompt, catalog)
             )
             result = assemble_result(item.prompt, generated_text, catalog)
-        except CallMeMaybeError as e:
+        except PipelineError as e:
             report_skipped_prompt(item.prompt, e)
             continue
         results.append(result)
