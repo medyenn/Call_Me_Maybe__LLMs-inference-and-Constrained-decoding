@@ -1,7 +1,24 @@
+"""Constrained-decoding engine (Phase 10 components F.1-F.5).
+
+Builds and drives a hand-rolled JSON grammar + function-schema state
+machine, used to mask an LLM's logits at every generation step so that
+only tokens keeping the output on track for a valid, schema-compliant
+`{"name": ..., "parameters": {...}}` object can ever be selected.
+
+No JSON/grammar library is used: `Pos` + `state_tracker` implement the
+JSON pushdown-automaton by hand (F.1), `SchemaState` +
+`schema_resolver` layer the function-schema constraints on top of it
+(F.2), and `build_vocab_trie` + `logit_masker` turn "which token
+strings are legal right now" into "which token IDs are legal right
+now" without re-simulating the whole vocabulary from scratch at every
+step (F.3, Phase 10.3 performance notes).
+"""
+
 from dataclasses import dataclass, field, replace
-from typing import List, Tuple
+from typing import Any, List, Protocol, Tuple
 from enum import Enum, auto
 
+from .exceptions import GenerationError
 from .models import FunctionCatalog, FunctionDefinition, ParamType
 
 _LITERALS = {"t": "true", "f": "false", "n": "null"}
@@ -29,10 +46,22 @@ class Pos(Enum):
 
 
 def _is_value_start(char: str) -> bool:
+    """Return True if `char` could legally begin a JSON value (an
+    object, array, string, number, or literal)."""
     return char == '"' or char in "{[-" or char.isdigit() or char in _LITERALS
 
 
 def _descend(stack: list, char: str) -> List | None:
+    """Push the state(s) entered by starting a new JSON value with
+    `char` (e.g. `{` pushes an "expect key or close" frame).
+
+    Args:
+        stack: The current state stack (mutated in place).
+        char: The character that starts the new value.
+
+    Returns:
+        The mutated stack, or None if `char` cannot start any value.
+    """
     if char == "{":
         stack.append(Pos.OBJ_KEY_OR_CLOSE)
     elif char == "[":
@@ -53,6 +82,23 @@ def _descend(stack: list, char: str) -> List | None:
 
 
 def state_tracker(state: list, char: str) -> List | None:
+    """Advance the pure JSON-grammar state machine by one character.
+
+    This is Phase 10's F.1 "Grammar / State Tracker": it knows nothing
+    about function schemas, only about what generic JSON syntax
+    permits next (braces balanced, strings properly quoted, numbers
+    well-formed, etc).
+
+    Args:
+        state: The current stack of `Pos` states (and, for numbers
+            and literals, `(Pos, extra)` tuples carrying just enough
+            extra context to track partial progress).
+        char: The next character being considered.
+
+    Returns:
+        The new state stack if `char` is a legal continuation, or
+        None if it would break JSON syntax.
+    """
     stack = list(state)
     top = stack[-1]
 
@@ -187,6 +233,35 @@ def state_tracker(state: list, char: str) -> List | None:
 
 @dataclass
 class SchemaState:
+    """Everything the Schema Constraint Resolver (F.2) needs to track
+    on top of the raw JSON grammar state: which function has been
+    selected (if any), which of its parameters are still required,
+    the declared type of whichever parameter value is in progress, and
+    a small text buffer used to recognise function/parameter names
+    (and the two fixed root keys) character by character.
+
+    Attributes:
+        catalog: The function catalog this generation is constrained
+            against.
+        selected: The `FunctionDefinition` chosen once the "name"
+            field has been fully written, else None.
+        remaining_params: Parameter names of `selected` not yet
+            written into the "parameters" object.
+        current_param_type: Declared type of the parameter value
+            currently being generated, else None.
+        params_depth: Stack depth (`len(f1_state)`) at which the
+            "parameters" object's contents live, once its `{` has
+            been seen.
+        collecting: What kind of string is currently being
+            accumulated into `buffer` -- "root_key", "name", "key",
+            or None.
+        buffer: The characters collected so far for `collecting`.
+        root_key_index: How many of the two required root keys
+            (`_ROOT_KEYS`) have been fully written so far.
+        expect_params_object: True right after the `"parameters":`
+            key/colon, before its opening `{` has been seen.
+    """
+
     catalog: FunctionCatalog
     selected: FunctionDefinition | None = None
     remaining_params: set = field(default_factory=set)
@@ -199,6 +274,8 @@ class SchemaState:
 
 
 def _value_start_allowed(param_type: str, char: str) -> bool:
+    """Return True if `char` could legally begin a value of
+    `param_type` ("string", "number", "integer", or "boolean")."""
     if param_type == "string":
         return char == '"'
     if param_type in ("number", "integer"):
@@ -211,6 +288,29 @@ def _value_start_allowed(param_type: str, char: str) -> bool:
 def schema_resolver(
             f1_state: list,
             f2: SchemaState, char: str) -> Tuple[List, SchemaState] | None:
+    """Advance both the JSON grammar state and the schema state by one
+    character, enforcing structural JSON validity AND schema
+    compliance together (Phase 5.2 / 10-F.1+F.2 combined).
+
+    On top of `state_tracker`'s pure-syntax rules, this additionally
+    restricts: the two root keys to exactly `name` then `parameters`
+    (in order, no repeats); `name`'s string value to a prefix of a
+    real function name; parameter keys to a prefix of one of the
+    selected function's still-remaining parameter names; parameter
+    values to characters legal for that parameter's declared type; and
+    the "parameters"/root object from closing before every required
+    key has been written.
+
+    Args:
+        f1_state: Current JSON-grammar state stack (as used by
+            `state_tracker`).
+        f2: Current `SchemaState`.
+        char: The next character being considered.
+
+    Returns:
+        The `(new_f1_state, new_f2)` pair if `char` is legal under
+        both JSON syntax and the function schema, or None otherwise.
+    """
     prev_top = f1_state[-1]
     in_params = f2.params_depth is not None and (
         len(f1_state) == f2.params_depth)
@@ -351,10 +451,17 @@ def schema_resolver(
 # Logit Masker (trie-based)
 
 
-def build_vocab_trie(id_to_token: dict) -> dict:
+def build_vocab_trie(id_to_token: dict[int, str]) -> dict:
     """Build a char-trie over the vocabulary ONCE, outside the
     generation loop. node[ch] -> child node; node[None] -> token ids
-    whose full string ends exactly at this node."""
+    whose full string ends exactly at this node.
+
+    Args:
+        id_to_token: The full token-ID -> token-string mapping.
+
+    Returns:
+        The trie's root node.
+    """
     root: dict = {}
     for token_id, token_str in id_to_token.items():
         node = root
@@ -364,7 +471,7 @@ def build_vocab_trie(id_to_token: dict) -> dict:
     return root
 
 
-def _state_key(f1_state: list, f2: SchemaState):  # type: ignore
+def _state_key(f1_state: list, f2: SchemaState) -> tuple[Any, ...]:
     """A hashable snapshot of (f1, f2) — cache key so an identical
     (state, char) transition is never computed twice."""
     return (
@@ -382,16 +489,29 @@ def _state_key(f1_state: list, f2: SchemaState):  # type: ignore
 
 
 def logit_masker(
-    logits: list,
+    logits: list[float],
     trie: dict,
     f1_state: list,
     f2: SchemaState,
     transition_cache: dict | None = None,
-) -> list:
+) -> list[float]:
     """F.3 — set every illegal token's logit to -inf, by walking the
     vocab trie instead of simulating each token independently.
-    `transition_cache`, if passed in and reused across steps, means an
-    identical (state, char) pair is never recomputed across the whole run."""
+
+    Args:
+        logits: The raw logits for the next token, one per vocab
+            entry (unmodified; a new list is returned).
+        trie: The vocabulary trie from `build_vocab_trie`.
+        f1_state: Current JSON-grammar state stack.
+        f2: Current `SchemaState`.
+        transition_cache: If passed in and reused across steps, an
+            identical (state, char) transition is never recomputed
+            across the whole generation run for one prompt.
+
+    Returns:
+        A new logits list where every token ID that would be an
+        illegal continuation has been set to negative infinity.
+    """
     if transition_cache is None:
         transition_cache = {}
 
@@ -426,23 +546,79 @@ def logit_masker(
 # Token Selector
 
 
-def token_selector(masked_logits: list) -> int:
+def token_selector(masked_logits: list[float]) -> int:
+    """Greedily pick the next token ID from already-masked logits
+    (Phase 6.4: deterministic selection among legal tokens only, since
+    correctness -- not creative variety -- is the goal here).
+
+    Args:
+        masked_logits: Logits with every illegal token already set to
+            negative infinity (see `logit_masker`).
+
+    Returns:
+        The token ID with the highest surviving logit.
+
+    Raises:
+        GenerationError: if every single token is illegal. This
+            should never happen if the grammar/schema resolver is
+            correct; it indicates an internal bug rather than a
+            normal per-prompt failure.
+    """
     best_id = max(range(len(masked_logits)), key=lambda i: masked_logits[i])
     if masked_logits[best_id] == float("-inf"):
-        raise RuntimeError("No legal token survived masking — grammar bug.")
+        raise GenerationError(
+            "No legal token survived masking (internal grammar bug)."
+        )
     return best_id
 
 
 # Generation Loop Driver
 
 
+class _GenerationSDK(Protocol):
+    """The subset of the llm_sdk SDK's public interface that the
+    generation loop depends on -- documented here as a Protocol-style
+    contract rather than imported directly, so this module never
+    depends on llm_sdk's internal types (only the given public
+    interface: encode, get_logits_from_input_ids)."""
+
+    def encode(self, text: str) -> Any:
+        ...
+
+    def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
+        ...
+
+
 def generate_function_call(
-    sdk, vocab, catalog: FunctionCatalog,
+    sdk: _GenerationSDK,
+    vocab: Any,
+    catalog: FunctionCatalog,
     prompt: str,
-    max_new_tokens: int = 150
+    max_new_tokens: int = 150,
 ) -> str:
     """F.5 — build the trie ONCE, then loop: get logits, mask, select,
-    advance state, feed the chosen token back to the model."""
+    advance state, feed the chosen token back to the model.
+
+    Args:
+        sdk: An llm_sdk model instance (only its public `encode` and
+            `get_logits_from_input_ids` methods are used).
+        vocab: A `loader.VocabularyManager`-shaped object exposing
+            `id_to_token`.
+        catalog: The function catalog to constrain generation against.
+        prompt: The natural-language prompt (already including the
+            function menu) to feed the model.
+        max_new_tokens: Safety cap on generated tokens, so a
+            hypothetical grammar bug can never turn into an infinite
+            loop (Phase 10-F.5's "never crashes / never hangs").
+
+    Returns:
+        The raw generated text: valid JSON, by construction, of the
+        shape `{"name": ..., "parameters": {...}}`.
+
+    Raises:
+        GenerationError: if no legal token exists at some step, or
+            the token budget is exhausted before completion.
+    """
     trie = build_vocab_trie(vocab.id_to_token)
     transition_cache: dict = {}
 
@@ -467,13 +643,16 @@ def generate_function_call(
         for char in token_str:
             result = schema_resolver(f1, f2, char)
             if result is None:
-                raise RuntimeError(
-                    f"masker selected illegal token {token_str!r} — bug."
+                raise GenerationError(
+                    f"Masker selected illegal token {token_str!r} "
+                    "(internal grammar bug)."
                 )
             f1, f2 = result
 
         generated_text += token_str
         input_ids = input_ids + [token_id]
 
-    raise RuntimeError(f"hit max_new_tokens={max_new_tokens}"
-                       " without finishing")
+    raise GenerationError(
+        f"Hit max_new_tokens={max_new_tokens} without completing a "
+        "well-formed function call."
+    )

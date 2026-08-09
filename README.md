@@ -90,24 +90,28 @@ work for us.
 
 ```
 .
-├── src/                          # Application source code
-│   ├── __main__.py                # CLI entrypoint
-│   ├── ...
-├── llm_sdk/                      # Provided SDK (copied, used read-only / public API only)
+├── src/
+│   ├── __main__.py       # Thin entrypoint: `python -m src` -> cli.main()
+│   ├── cli.py            # Argument parsing, model loading, top-level error handling
+│   ├── orchestrator.py   # Wires everything together, per-prompt loop, progress/timing
+│   ├── decoder.py        # Constrained-decoding engine (grammar + schema + logit masking)
+│   ├── loader.py         # Function/prompt/vocabulary loaders, all defensively parsed
+│   ├── models.py         # Every pydantic data model + the type-mapping table
+│   ├── output.py         # Output Assembler (re-validates) + Output Writer
+│   └── exceptions.py     # Project-specific exception hierarchy
+├── llm_sdk/               # Provided SDK (copied, used read-only / public API only)
 ├── data/
-│   └── input/
-│       ├── functions_definition.json
-│       └── function_calling_tests.json
-│   └── output/                   # Generated at runtime — not committed
-├── tests/                        # Non-graded but recommended test suite
+│   ├── input/
+│   │   ├── functions_definition.json
+│   │   └── function_calling_tests.json
+│   └── output/            # Generated at runtime — not committed
+├── tests/                 # Non-graded but recommended test suite (pytest)
 ├── pyproject.toml
 ├── uv.lock
 ├── Makefile
 ├── .gitignore
 └── README.md
 ```
-
-*(Adjust this tree to match your actual final module layout before submitting.)*
 
 ---
 

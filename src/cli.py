@@ -1,5 +1,11 @@
+import sys
 from argparse import ArgumentParser, Namespace
+
+from llm_sdk.llm_sdk import Small_LLM_Model
+
+from .exceptions import CallMeMaybeError
 from .models import Config
+from .orchestrator import run_pipeline
 
 
 def args_parser() -> Namespace:
@@ -11,7 +17,7 @@ def args_parser() -> Namespace:
     """
     parser = ArgumentParser(
         prog="python -m src",
-        description="Translate natural language"
+        description="Translate natural language "
         "prompts into structured function calls.",
     )
     parser.add_argument(
@@ -33,7 +39,7 @@ def args_parser() -> Namespace:
         default=None,
         type=str,
         help="Path to write the output JSON file "
-        "(default: data/output/function_calls.json)",
+        "(default: data/output/function_calling_results.json)",
     )
     return parser.parse_args()
 
@@ -51,9 +57,25 @@ def build_config() -> Config:
 
 
 def main() -> None:
-    """Entry point: build the config and (for now) display it."""
+    """Entry point: parse args, run the full pipeline, and translate
+    any failure -- ours or not -- into a clean message and a non-zero
+    exit code instead of a raw traceback (subject IV.1: the program
+    must never crash during review).
+    """
     config = build_config()
-    print(config)
+    try:
+        print("Loading model (this can take a while on first run)...")
+        sdk = Small_LLM_Model()
+        run_pipeline(config, sdk)
+    except CallMeMaybeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        # Last-resort safety net: nothing should ever reach here if
+        # every component raises CallMeMaybeError as intended, but
+        # this guarantees we still fail cleanly instead of crashing.
+        print(f"Unexpected error: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
