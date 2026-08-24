@@ -27,10 +27,6 @@ lint:
 		--ignore-missing-imports --disallow-untyped-defs \
 		--check-untyped-defs
 
-lint-strict:
-	@uv run flake8 src
-	@uv run mypy src --strict
-
 test:
 	@uv run pytest
 

@@ -1,47 +1,23 @@
-"""Orchestrator / Pipeline Controller (Phase 10 component I).
-
-The only module that "knows about everything": it wires the Config,
-the two loaders, the Vocabulary Manager, the constrained-decoding
-engine, the Output Assembler, and the Output Writer into one run, and
-reports progress/timing relevant to the subject's 5-minute budget
-(V.5).
-"""
+"""Wires the Config, loaders, decoder, and output modules into one run."""
 
 import time
 
 from typing import Any
-from .decoder import generate_function_call
+from .decoder import GenerationIncomplete, generate_function_call
 from .loader import fcts_loader, prompt_loader, vocab_loader
 from .models import Config, FunctionCallResult, FunctionCatalog
-from .output import assemble_result, report_skipped_prompt, write_results
+from .output import (
+    assemble_fallback_result,
+    assemble_result,
+    report_fallback_prompt,
+    write_results,
+)
 
-# Every failure path in the pipeline raises one of these three
-# built-in types (see loader.py/output.py/decoder.py docstrings for
-# which is used where), so the orchestrator and CLI only need to
-# catch this one tuple to turn a known, expected failure into a clean
-# message instead of a raw traceback.
 PipelineError = (OSError, ValueError, RuntimeError)
 
 
 def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
-    """Build the natural-language prompt handed to the model.
-
-    This text is only ever used for *content* decisions (which
-    function, which values) -- it has no bearing on the *validity* of
-    the output, which is guaranteed by the constrained-decoding engine
-    regardless of how this prompt is phrased. It does, however,
-    influence output *quality*: an explicit instruction not to copy
-    quote marks out of the request, plus one worked example, measurably
-    cuts down on the model echoing stray `'quotes'` into string values.
-
-    Args:
-        user_question: The natural-language request to fulfill.
-        catalog: The available functions, listed so the model can
-            pick among them.
-
-    Returns:
-        The full prompt text to feed the model.
-    """
+    """Build the natural-language prompt handed to the model."""
     functions_desc = "\n".join(
         f"- {fn.name}({', '.join(fn.parameters)}): {fn.description}"
         for fn in catalog.functions
@@ -51,37 +27,23 @@ def build_prompt(user_question: str, catalog: FunctionCatalog) -> str:
         f"Given the following request, respond with a single JSON "
         f"function call of the form "
         f'{{"name": "<function_name>", "parameters": {{...}}}}.\n'
-        f"Example: for the request \"Reverse the string 'abc'\", "
-        f'respond {{"name": "fn_reverse_string", "parameters": '
-        f'{{"s": "abc"}}}}.\n'
-        f"Do not include quote marks from the request inside string "
-        f"values -- copy only the underlying word or text itself.\n\n"
+        f"Example: \"Reverse 'abc'\" -> "
+        f'{{"name":"fn_reverse_string","parameters":{{"s":"abc"}}}}.\n'
+        f"Example: \"Replace all numbers in 'ab1 cd2' with X\" -> "
+        f'{{"name":"fn_substitute_string_with_regex",'
+        f'"parameters":{{"source_string":"ab1 cd2","regex":"\\\\d+",'
+        f'"replacement":"X"}}}}.\n'
+        f'"regex" must be a general pattern (e.g. "\\\\d+"), not a literal '
+        f'from the text; "replacement" is the literal target text. '
+        f"Do not copy quote marks into string values.\n\n"
         f"Request: {user_question}"
     )
 
 
 def run_pipeline(config: Config, sdk: Any) -> list[FunctionCallResult]:
-    """Run the full pipeline end to end and write the output file.
-
-    A single prompt that cannot be turned into a valid, schema
-    compliant function call does not abort the batch: it is skipped
-    with a warning (see `output.report_skipped_prompt`), and every
-    other prompt is still processed and written (documented design
-    decision -- see README "Design Decisions").
-
-    Args:
-        config: Resolved input/output paths.
-        sdk: A ready-to-use llm_sdk model instance.
-
-    Returns:
-        The list of results that were successfully written, in the
-        same relative order as the input prompts.
-
-    Raises:
-        OSError / ValueError / RuntimeError: if a fatal,
-            non-recoverable error occurs (e.g. the function catalog
-            itself cannot be loaded), or the output file cannot be
-            written.
+    """Run the full pipeline and write the output file. Every prompt
+    yields one record; unresolved ones fall back to a best effort,
+    all bounded by one shared wall-clock deadline for the batch.
     """
     catalog = fcts_loader(config.functions_definition)
     prompts = prompt_loader(config.input)
@@ -93,16 +55,39 @@ def run_pipeline(config: Config, sdk: Any) -> list[FunctionCallResult]:
 
     results: list[FunctionCallResult] = []
     start = time.time()
+    deadline = start + config.time_budget_seconds
 
     for i, item in enumerate(prompts, start=1):
+        if time.time() >= deadline:
+            result = assemble_fallback_result(item.prompt, catalog, "")
+            report_fallback_prompt(
+                item.prompt,
+                RuntimeError(
+                    "Time budget exhausted before this prompt could "
+                    "be attempted."
+                ),
+            )
+            results.append(result)
+            print(f"[{i}/{len(prompts)}] {item.prompt!r} -> "
+                  f"{result.name} (time budget exhausted)")
+            continue
+
+        generated_text = ""
         try:
             generated_text = generate_function_call(
-                sdk, vocab, catalog, build_prompt(item.prompt, catalog)
+                sdk, vocab, catalog, build_prompt(item.prompt, catalog),
+                deadline=deadline,
             )
             result = assemble_result(item.prompt, generated_text, catalog)
-        except PipelineError as e:
-            report_skipped_prompt(item.prompt, e)
-            continue
+        except GenerationIncomplete as e:
+            result = assemble_fallback_result(
+                item.prompt, catalog, e.partial_text)
+            report_fallback_prompt(item.prompt, e)
+        except (OSError, ValueError, RuntimeError) as e:
+            result = assemble_fallback_result(
+                item.prompt, catalog, generated_text)
+            report_fallback_prompt(item.prompt, e)
+
         results.append(result)
         print(f"[{i}/{len(prompts)}] {item.prompt!r} -> {result.name}")
 

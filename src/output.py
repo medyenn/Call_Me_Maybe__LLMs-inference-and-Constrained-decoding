@@ -1,18 +1,13 @@
-"""Output Assembler & Output Writer (Phase 10 components G and H).
-
-The constrained-decoding engine already guarantees that whatever text
-it produces is syntactically valid JSON that matches the grammar it
-was walking. This module is the "belt and suspenders" layer: it
-parses that text, re-validates it against the *actual* FunctionCatalog
-one more time, and only then turns it into the exact 3-key record the
-subject requires (V.4) -- catching any lingering engine bug before it
-ever reaches the deliverable file.
+"""Parses and validates the decoder's generated text into the final
+3-key output record, or a best-effort fallback when generation didn't
+finish, then writes the results file.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import cast, Any
 
 from .models import (
     FunctionCallResult,
@@ -21,23 +16,7 @@ from .models import (
 
 
 def _value_matches_declared_type(value: object, param_type: str) -> bool:
-    """Check a Python value against one of our declared parameter
-    types.
-
-    "number" accepts both `int` and `float` (JSON's "number" does not
-    distinguish the two -- see subject V.4.1's own `2.0`/`3.0` example,
-    which is a formatting choice, not a hard type split). "integer" is
-    a stricter subset requiring a whole number. `bool` is excluded from
-    both, since `bool` is a subclass of `int` in Python and must never
-    silently satisfy a numeric parameter.
-
-    Args:
-        value: The already-parsed Python value (from `json.loads`).
-        param_type: One of "string", "number", "integer", "boolean".
-
-    Returns:
-        True if `value`'s Python type is an acceptable match.
-    """
+    """Check a parsed value against one of our declared parameter types."""
     if param_type == "boolean":
         return isinstance(value, bool)
     if isinstance(value, bool):
@@ -52,52 +31,26 @@ def _value_matches_declared_type(value: object, param_type: str) -> bool:
 
 
 def _strip_copied_quotes(value: str) -> str:
-    """Drop a matching pair of leading/trailing quote marks from a
-    generated string value.
-
-    The model sometimes copies a quoted word straight out of the
-    natural-language prompt (e.g. "Reverse the string 'hello'")
-    quote marks and all, instead of just the word itself. Those marks
-    were never meant to be part of the *value* -- JSON's own double
-    quotes already delimit the string -- so a leading/trailing `'` or
-    `"` pair on an otherwise-plain value is stripped as a copy-paste
-    artifact rather than kept as real content.
-
-    Args:
-        value: The raw string value parsed out of the generated JSON.
-
-    Returns:
-        `value` with one matching pair of surrounding quote marks
-        removed, or unchanged if there is no such matching pair.
+    """Drop a matching pair of leading/trailing quote marks, a common
+    artifact of the model copying a quoted word out of the prompt.
     """
     if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
         return value[1:-1]
     return value
 
 
-def _coerce_value(value: Any, param_type: str) -> object:
-    """Normalize an already type-checked parameter value into the
-    exact Python representation its declared type calls for.
+def _coerce_value(value: object, param_type: str) -> object:
+    """Normalize a type-checked value into its declared type."""
 
-    "number" is always emitted as a `float` (so a generated `5`
-    becomes `5.0`), matching subject V.4.1's own example, even though
-    JSON itself doesn't distinguish `5` from `5.0`. "integer" stays a
-    plain `int`. "string" has copy-pasted quote marks stripped (see
-    `_strip_copied_quotes`). "boolean" passes through unchanged.
-
-    Args:
-        value: The already type-checked value.
-        param_type: One of "string", "number", "integer", "boolean".
-
-    Returns:
-        The normalized value.
-    """
     if param_type == "number":
-        return float(value)
+        return float(cast(float, value))
+
     if param_type == "integer":
-        return int(value)
+        return int(cast(int, value))
+
     if param_type == "string":
-        return _strip_copied_quotes(value)
+        return _strip_copied_quotes(cast(str, value))
+
     return value
 
 
@@ -106,25 +59,8 @@ def assemble_result(
     generated_text: str,
     catalog: FunctionCatalog,
 ) -> FunctionCallResult:
-    """Turn the decoder's raw `{"name": ..., "parameters": {...}}` text
-    for one prompt into a validated FunctionCallResult.
-
-    Args:
-        prompt: The original natural-language request, copied
-            verbatim into the output record.
-        generated_text: The raw JSON text produced by
-            `decoder.generate_function_call` for this prompt.
-        catalog: The real function catalog to validate against.
-
-    Returns:
-        A FunctionCallResult with exactly the three required keys.
-
-    Raises:
-        ValueError: if the generated text does not parse, does not
-            have the expected shape, names a function that does not
-            exist in `catalog`, is missing a required parameter, has
-            an extra/unknown parameter, or has a parameter whose
-            value does not match its declared type.
+    """Turn the decoder's raw JSON text for one prompt into a
+    validated FunctionCallResult.
     """
     try:
         parsed = json.loads(generated_text)
@@ -167,7 +103,7 @@ def assemble_result(
             f"Extra: {sorted(extra)}."
         )
 
-    normalized_parameters: dict[str, Any] = {}
+    normalized_parameters: dict = {}
     for key, value in parameters.items():
         expected_type = function_def.parameters[key].type
         if not _value_matches_declared_type(value, expected_type):
@@ -183,20 +119,61 @@ def assemble_result(
         prompt=prompt, name=name, parameters=normalized_parameters)
 
 
+def _extract_partial_name(partial_text: str) -> str | None:
+    """Best-effort recovery of a `"name": "..."` value from
+    possibly-incomplete text.
+    """
+    match = re.search(r'"name"\s*:\s*"([^"]*)"', partial_text)
+    return match.group(1) if match else None
+
+
+def _extract_partial_value(partial_text: str, key: str) -> Any:
+    """Best-effort recovery of a complete `"<key>": <value>` pair's
+    value from possibly-incomplete text; a value cut off mid-generation
+    won't match, which is the correct outcome.
+    """
+    pattern = (
+        rf'"{re.escape(key)}"\s*:\s*'
+        r'("(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?|true|false)'
+    )
+    match = re.search(pattern, partial_text)
+    if match is None:
+        return None
+    try:
+        return json.loads(match.group(1))
+    except json.JSONDecodeError:
+        return None
+
+
+def assemble_fallback_result(
+    prompt: str,
+    catalog: FunctionCatalog,
+    partial_text: str,
+) -> FunctionCallResult:
+    """Build a best-effort FunctionCallResult for a prompt that
+    couldn't be resolved into a complete, valid function call, so
+    every prompt still produces exactly one output record.
+    """
+    function_def = catalog.get(_extract_partial_name(partial_text) or "")
+    if function_def is None:
+        return FunctionCallResult(prompt=prompt, name="unknown", parameters={})
+
+    parameters: dict = {}
+    for key, spec in function_def.parameters.items():
+        raw_value = _extract_partial_value(partial_text, key)
+        if raw_value is not None and _value_matches_declared_type(
+                raw_value, spec.type):
+            parameters[key] = _coerce_value(raw_value, spec.type)
+        else:
+            parameters[key] = "unknown"
+
+    return FunctionCallResult(
+        prompt=prompt, name=function_def.name, parameters=parameters)
+
+
 def write_results(
         results: list[FunctionCallResult], output_path: Path) -> None:
-    """Serialize the full list of results to `output_path` as a JSON
-    array, creating parent directories if needed.
-
-    Args:
-        results: The validated results, in the same order as the
-            input prompts.
-        output_path: Where to write the final JSON file.
-
-    Raises:
-        OSError: if the parent directory cannot be created, or the
-            file cannot be written (permissions, disk errors, etc.).
-    """
+    """Serialize the results to `output_path` as a JSON array."""
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
     except OSError as e:
@@ -219,17 +196,10 @@ def write_results(
         ) from e
 
 
-def report_skipped_prompt(prompt: str, error: Exception) -> None:
-    """Log (to stderr, never crashing the run) that one prompt was
-    skipped from the output.
-
-    Design decision (documented in README): a single prompt that
-    cannot be resolved into a valid, schema-compliant function call
-    does not abort the whole batch. It is skipped with a clear
-    warning, and every other prompt is still processed and written.
-
-    Args:
-        prompt: The prompt that was skipped.
-        error: The exception explaining why.
-    """
-    print(f"Skipping prompt {prompt!r}: {error}", file=sys.stderr)
+def report_fallback_prompt(prompt: str, error: Exception) -> None:
+    """Log to stderr that one prompt needed a best-effort fallback."""
+    print(
+        f"Falling back to a best-effort result for prompt {prompt!r}: "
+        f"{error}",
+        file=sys.stderr,
+    )

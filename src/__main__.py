@@ -8,12 +8,7 @@ from .orchestrator import PipelineError, run_pipeline
 
 
 def args_parser() -> Namespace:
-    """Parse command-line arguments.
-
-    Returns:
-        Namespace with functions_definition, input, and output attributes,
-        each either a user-supplied string or None if omitted.
-    """
+    """Parse command-line arguments."""
     parser = ArgumentParser(
         prog="python -m src",
         description="Translate natural language "
@@ -40,27 +35,26 @@ def args_parser() -> Namespace:
         help="Path to write the output JSON file "
         "(default: data/output/function_calling_results.json)",
     )
+    parser.add_argument(
+        "--time_budget_seconds",
+        default=None,
+        type=float,
+        help="Wall-clock budget in seconds for the generation phase "
+        "only, excluding model loading and output writing "
+        "(default: 240.0)",
+    )
     return parser.parse_args()
 
 
 def build_config() -> Config:
-    """Parse argv and build a validated Config, falling back to defaults
-    for any flag the user did not supply.
-
-    Returns:
-        A validated Config instance.
-    """
+    """Parse argv and build a validated Config."""
     namespace_obj = args_parser()
     overrides = {k: v for k, v in vars(namespace_obj).items() if v is not None}
     return Config(**overrides)
 
 
 def main() -> None:
-    """Entry point: parse args, run the full pipeline, and translate
-    any failure -- ours or not -- into a clean message and a non-zero
-    exit code instead of a raw traceback (subject IV.1: the program
-    must never crash during review).
-    """
+    """Entry point: run the pipeline, never crash on a known failure."""
     config = build_config()
     try:
         print("Loading model (this can take a while on first run)...")
@@ -70,10 +64,6 @@ def main() -> None:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        # Last-resort safety net: nothing should ever reach here if
-        # every component raises OSError/ValueError/RuntimeError as
-        # intended, but this guarantees we still fail cleanly instead
-        # of crashing with a raw traceback.
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
