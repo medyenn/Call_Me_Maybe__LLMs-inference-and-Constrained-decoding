@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>call me maybe — Mastery Tutorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1016;
+  --bg2:#0f151d;
+  --panel:#121a24;
+  --panel2:#0d131b;
+  --ink:#e7edf3;
+  --muted:#8a96a6;
+  --muted2:#5f6b7a;
+  --rule:rgba(255,255,255,0.09);
+  --amber:#ffb454;
+  --amber-dim:#8a6a3a;
+  --cyan:#7fd7d1;
+  --green:#8fd17e;
+  --red:#ff7a7a;
+  --violet:#b9a3ff;
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --disp:'Space Grotesk', ui-sans-serif, sans-serif;
+  --body:'IBM Plex Sans', ui-sans-serif, sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  line-height:1.65;
+  font-size:16px;
+}
+::selection{background:var(--amber);color:#1a1200;}
+
+/* ---------- layout shell ---------- */
+.shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;}
+@media (max-width:940px){.shell{grid-template-columns:1fr;} .toc{position:relative;height:auto;top:0;}}
+
+/* ---------- sidebar / toc ---------- */
+.toc{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  border-right:1px solid var(--rule);
+  background:linear-gradient(180deg,var(--bg2),var(--bg));
+  padding:28px 22px 40px;
+}
+.toc .brand{
+  font-family:var(--mono);
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);
+  margin-bottom:4px;
+}
+.toc h1{
+  font-family:var(--disp);font-size:20px;margin:0 0 20px;line-height:1.25;color:var(--ink);
+}
+.toc-list{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:13px;}
+.toc-list li{margin:0;border-left:2px solid transparent;}
+.toc-list a{
+  display:block;padding:7px 10px 7px 12px;color:var(--muted);text-decoration:none;
+  border-radius:0 4px 4px 0;transition:.15s;
+}
+.toc-list a .n{color:var(--amber-dim);margin-right:8px;}
+.toc-list a:hover{color:var(--ink);background:rgba(255,255,255,0.04);}
+.toc-list li.active a{color:var(--amber);background:rgba(255,180,84,0.08);}
+.toc-list li.active{border-left-color:var(--amber);}
+.toc .sub a{padding-left:26px;font-size:12px;color:var(--muted2);}
+.toc .divider{height:1px;background:var(--rule);margin:16px 0;}
+.toc .meta{font-family:var(--mono);font-size:11px;color:var(--muted2);margin-top:18px;}
+
+/* ---------- main ---------- */
+main{padding:0;max-width:100%;}
+.hero{
+  padding:72px 64px 56px;border-bottom:1px solid var(--rule);
+  background:
+    radial-gradient(900px 300px at 85% -10%, rgba(127,215,209,0.08), transparent 60%),
+    radial-gradient(700px 260px at 10% -20%, rgba(255,180,84,0.10), transparent 60%);
+  position:relative;overflow:hidden;
+}
+.hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px;}
+.hero h1{
+  font-family:var(--disp);font-weight:700;font-size:clamp(32px,4vw,52px);
+  margin:0 0 18px;line-height:1.08;max-width:16ch;
+}
+.hero h1 em{font-style:normal;color:var(--amber);}
+.hero p.lede{color:var(--muted);max-width:62ch;font-size:17px;margin:0 0 30px;}
+
+/* teletype tape */
+.tape{
+  font-family:var(--mono);font-size:14px;color:var(--green);
+  background:#070a0e;border:1px solid var(--rule);border-radius:8px;
+  padding:16px 18px;display:inline-block;white-space:pre;overflow:hidden;
+  max-width:100%;box-shadow:inset 0 0 30px rgba(0,0,0,.4);
+}
+.tape .cursor{display:inline-block;width:8px;background:var(--amber);animation:blink 1s steps(1) infinite;margin-left:1px;}
+@keyframes blink{50%{opacity:0;}}
+@media (prefers-reduced-motion: reduce){.tape .cursor{animation:none;}}
+
+section{padding:56px 64px;border-bottom:1px solid var(--rule);max-width:980px;}
+section.wide{max-width:1180px;}
+.kicker{font-family:var(--mono);font-size:12px;color:var(--amber-dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
+h2{font-family:var(--disp);font-size:30px;margin:0 0 6px;display:flex;align-items:baseline;gap:14px;}
+h2 .idx{color:var(--amber);font-family:var(--mono);font-size:20px;}
+h3{font-family:var(--disp);font-size:20px;color:var(--ink);margin:36px 0 12px;}
+h4{font-family:var(--mono);font-size:14px;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin:26px 0 10px;}
+p{color:#cdd6e0;max-width:74ch;}
+p.tight{max-width:none;}
+strong{color:var(--ink);}
+a.inline{color:var(--cyan);}
+ul,ol{color:#cdd6e0;max-width:72ch;padding-left:22px;}
+li{margin:6px 0;}
+code.i{
+  font-family:var(--mono);background:rgba(127,215,209,0.09);color:var(--cyan);
+  padding:1px 6px;border-radius:4px;font-size:0.88em;
+}
+
+/* code blocks */
+.code{
+  background:var(--panel2);border:1px solid var(--rule);border-radius:10px;
+  overflow:hidden;margin:18px 0 24px;
+}
+.code .bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--rule);
+  font-family:var(--mono);font-size:11.5px;color:var(--muted2);background:var(--panel);
+}
+.code pre{margin:0;padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.6;color:#dbe4ec;}
+.code pre .c{color:#5f6b7a;font-style:italic;}      /* comments */
+.code pre .k{color:#ff9d6c;}                         /* keywords */
+.code pre .s{color:#8fd17e;}                         /* strings */
+.code pre .f{color:#7fd7d1;}                         /* funcs/defs */
+.code pre .n{color:#b9a3ff;}                         /* names/consts */
+.code pre .p{color:#ffb454;}                         /* punctuation/decor */
+
+.callout{
+  border:1px solid var(--rule);border-left:3px solid var(--amber);
+  background:rgba(255,180,84,0.06);border-radius:0 10px 10px 0;
+  padding:16px 20px;margin:22px 0;max-width:74ch;
+}
+.callout.cyan{border-left-color:var(--cyan);background:rgba(127,215,209,0.06);}
+.callout.red{border-left-color:var(--red);background:rgba(255,122,122,0.06);}
+.callout .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;}
+.callout.cyan .lbl{color:var(--cyan);}
+.callout.red .lbl{color:var(--red);}
+.callout p{margin:0;color:#cdd6e0;}
+
+/* grid cards */
+.grid{display:grid;gap:16px;margin:20px 0;}
+.grid.cols-2{grid-template-columns:1fr 1fr;}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+@media (max-width:760px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr;}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px 20px;}
+.card h5{font-family:var(--mono);font-size:13px;color:var(--ink);margin:0 0 8px;}
+.card p{font-size:14px;margin:0;color:var(--muted);}
+
+/* comparison table */
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--rule);vertical-align:top;color:#cdd6e0;}
+th{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);}
+tr td:first-child{color:var(--ink);font-weight:500;white-space:nowrap;}
+
+/* verdict badges */
+.badge{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:20px;letter-spacing:.03em;}
+.badge.good{background:rgba(143,209,126,0.15);color:var(--green);}
+.badge.bad{background:rgba(255,122,122,0.15);color:var(--red);}
+.badge.neutral{background:rgba(127,215,209,0.15);color:var(--cyan);}
+
+/* pipeline diagram */
+.flow{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin:26px 0;}
+.flow .step{
+  background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+  padding:14px 16px;min-width:150px;flex:1;position:relative;
+}
+.flow .step .t{font-family:var(--mono);font-size:12px;color:var(--amber);margin-bottom:4px;}
+.flow .step .d{font-size:12.5px;color:var(--muted);}
+.flow .arrow{display:flex;align-items:center;justify-content:center;color:var(--muted2);padding:0 6px;font-size:18px;}
+@media (max-width:760px){.flow{flex-direction:column;} .flow .arrow{transform:rotate(90deg);padding:6px 0;}}
+
+/* qa accordion */
+.qa{border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:14px 0;background:var(--panel);}
+.qa summary{
+  cursor:pointer;padding:16px 20px;font-family:var(--disp);font-size:15.5px;color:var(--ink);
+  list-style:none;display:flex;gap:12px;align-items:baseline;
+}
+.qa summary::-webkit-details-marker{display:none;}
+.qa summary::before{content:"Q";font-family:var(--mono);color:var(--amber);font-size:12px;border:1px solid var(--amber-dim);border-radius:4px;padding:1px 6px;}
+.qa[open] summary{border-bottom:1px solid var(--rule);}
+.qa .a{padding:16px 20px 20px 58px;font-size:14.5px;color:#cdd6e0;}
+.qa .a p{max-width:none;}
+
+/* footer */
+footer{padding:40px 64px;color:var(--muted2);font-family:var(--mono);font-size:12px;}
+
+/* stack visual */
+.stackbox{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin:20px 0;}
+.stackcol{display:flex;flex-direction:column-reverse;gap:4px;min-width:120px;}
+.stackcell{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:12px;color:var(--cyan);text-align:center;}
+.stackcell.top{border-color:var(--amber);color:var(--amber);}
+.stacklabel{font-family:var(--mono);font-size:11px;color:var(--muted2);text-align:center;margin-top:6px;}
+
+.scrollnote{font-size:12px;color:var(--muted2);font-family:var(--mono);margin-top:-10px;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="toc" id="toc">
+  <div class="brand">42 · call-me-maybe</div>
+  <h1>Mastery Tutorial</h1>
+  <ul class="toc-list">
+    <li><a href="#big-picture"><span class="n">00</span>The Big Picture</a></li>
+    <li><a href="#entry"><span class="n">01</span>Entry Point</a></li>
+    <li><a href="#models"><span class="n">02</span>Data Contracts</a></li>
+    <li><a href="#loader"><span class="n">03</span>Loading the World</a></li>
+    <li><a href="#orchestrator"><span class="n">04</span>The Pipeline</a></li>
+    <li><a href="#output"><span class="n">05</span>Text → Verdict</a></li>
+    <li><a href="#decoder"><span class="n">06</span>decoder.py — The Core</a></li>
+    <li class="sub"><a href="#grammar">6.1 The JSON automaton</a></li>
+    <li class="sub"><a href="#schema">6.2 The schema overlay</a></li>
+    <li class="sub"><a href="#trie">6.3 Trie + masking</a></li>
+    <li class="sub"><a href="#loop">6.4 The generation loop</a></li>
+    <li><a href="#comparison"><span class="n">07</span>Grammar vs. Hardcoded Blueprint</a></li>
+    <li><a href="#defense"><span class="n">08</span>Defending It Live</a></li>
+    <li><a href="#weaknesses"><span class="n">09</span>Honest Weak Points</a></li>
+  </ul>
+  <div class="divider"></div>
+  <div class="meta">v1.5.0 · Qwen/Qwen3-0.6B<br>constrained decoding · zero inference libs</div>
+</nav>
+
+<main>
+
+<div class="hero">
+  <div class="eyebrow">Line-by-line · design-decision-by-design-decision</div>
+  <h1>Understanding <em>call me maybe</em> to the level you can defend it</h1>
+  <p class="lede">This is a full walkthrough of your final submission — from <code class="i">python -m src</code>
+  down to the single character that gets or doesn't get appended to a growing JSON string —
+  with a full comparative analysis of your grammar+schema decoder against the "just hardcode
+  the blueprint" alternative, and the arguments an evaluator can throw at you.</p>
+  <div class="tape">{"name": "fn_multiply_numbers", "parameters": {"a": 3.0, "b": 5.0}}<span class="cursor"> </span></div>
+</div>
+
+<!-- ============================================================ -->
+<section id="big-picture">
+  <div class="kicker">00 · Orientation</div>
+  <h2><span class="idx">00</span>The Big Picture</h2>
+  <p>Before touching a single function, hold the whole shape of the program in your head.
+  Five files, one job each, wired together by <code class="i">orchestrator.py</code>:</p>
+
+  <div class="flow">
+    <div class="step"><div class="t">__main__.py</div><div class="d">parses CLI args, builds <code class="i">Config</code>, loads the model, calls the pipeline</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="t">loader.py</div><div class="d">reads &amp; validates the two JSON input files + the tokenizer vocabulary</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="t">orchestrator.py</div><div class="d">the per-prompt loop, shared time budget, wiring decoder → output</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="t">decoder.py</div><div class="d">constrained decoding engine — the actual algorithm</div></div>
+    <div class="arrow">→</div>
+    <div class="step"><div class="t">output.py</div><div class="d">parse, validate, coerce, fallback, write to disk</div></div>
+  </div>
+
+  <p>Everything in <code class="i">models.py</code> (not pictured above because it has no verbs —
+  it only has nouns) is the shared vocabulary every other file imports: <code class="i">Config</code>,
+  <code class="i">FunctionCatalog</code>, <code class="i">FunctionCallResult</code>. This is what lets the
+  rest of the codebase talk about "a function" or "a result" without ever touching a raw dict.</p>
+
+  <div class="callout cyan">
+    <div class="lbl">Why this matters for defense</div>
+    <p>An evaluator's first question is often "walk me through what happens when I run this."
+    Being able to name these five files, in this order, with one sentence each, before you even
+    open a file, signals architectural understanding — not just "I can explain this function
+    if you point at it."</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="entry">
+  <div class="kicker">01 · src/__main__.py</div>
+  <h2><span class="idx">01</span>The Entry Point</h2>
+  <p><code class="i">python -m src</code> works because <code class="i">src/__main__.py</code> exists —
+  that's a Python convention: running a package with <code class="i">-m</code> executes that package's
+  <code class="i">__main__.py</code> as the top-level script. Its only job is three things: turn
+  <code class="i">argv</code> into a validated <code class="i">Config</code>, load the model, and hand
+  control to <code class="i">run_pipeline</code> — wrapped in exactly enough exception handling to
+  guarantee the program never crashes with a raw Python traceback.</p>
+
+  <div class="code">
+    <div class="bar"><span>src/__main__.py</span><span>build_config()</span></div>
+    <pre><span class="k">def</span> <span class="f">build_config</span>() -> Config:
+    <span class="s">"""Parse argv and build a validated Config."""</span>
+    namespace_obj = args_parser()
+    overrides = {k: v <span class="k">for</span> k, v <span class="k">in</span> vars(namespace_obj).items() <span class="k">if</span> v <span class="k">is not</span> <span class="n">None</span>}
+    <span class="k">return</span> Config(**overrides)</pre>
+  </div>
+
+  <p>The trick worth noticing: every <code class="i">argparse</code> flag defaults to <code class="i">None</code>,
+  not to the real default. <code class="i">vars(namespace_obj).items()</code> turns the parsed namespace
+  into a dict, and the dict-comprehension <strong>drops every key whose value is still <code class="i">None</code></strong>
+  — i.e. every flag the user didn't pass. What's left, <code class="i">overrides</code>, is only the flags
+  the user actually typed. Those get splatted (<code class="i">**overrides</code>) into <code class="i">Config(...)</code>,
+  a <code class="i">pydantic</code> model that already carries the real defaults
+  (<code class="i">data/input/functions_definition.json</code>, etc.) as class-level field defaults.</p>
+
+  <div class="callout">
+    <div class="lbl">Why not just set argparse's <code class="i">default=</code> directly?</div>
+    <p>Because then the "single source of truth" for defaults would be split across two places —
+    <code class="i">argparse</code> and <code class="i">Config</code> — and they could silently drift.
+    By making every CLI flag default to <code class="i">None</code> and letting <code class="i">Config</code>
+    own the real defaults, there is exactly one place in the entire codebase that says
+    "the default output path is <code class="i">data/output/function_calling_results.json</code>."</p>
+  </div>
+
+  <p>Then <code class="i">main()</code> does the un-glamorous but essential work:</p>
+  <div class="code">
+    <div class="bar"><span>src/__main__.py</span><span>main()</span></div>
+    <pre><span class="k">def</span> <span class="f">main</span>() -> <span class="n">None</span>:
+    config = build_config()
+    <span class="k">try</span>:
+        sdk = Small_LLM_Model()
+        run_pipeline(config, sdk)
+    <span class="k">except</span> PipelineError <span class="k">as</span> e:
+        print(<span class="s">f"Error: {e}"</span>, file=sys.stderr); sys.exit(<span class="n">1</span>)
+    <span class="k">except</span> Exception <span class="k">as</span> e:
+        print(<span class="s">f"Unexpected error: {e}"</span>, file=sys.stderr); sys.exit(<span class="n">1</span>)</pre>
+  </div>
+  <p><code class="i">PipelineError</code> is not a class — it's a <em>tuple of exception types</em>
+  (<code class="i">(OSError, ValueError, RuntimeError)</code>) defined in <code class="i">orchestrator.py</code>.
+  Python's <code class="i">except</code> accepts a tuple directly, so this one name documents,
+  in one place, "these are the categories of failure this program considers <em>expected</em>
+  and reports cleanly" — bad file paths (<code class="i">OSError</code>), bad JSON/schema
+  (<code class="i">ValueError</code>), and internal invariants breaking
+  (<code class="i">RuntimeError</code>). The bare <code class="i">except Exception</code> underneath
+  is the safety net for anything that slipped the net — the subject's "never crash on the
+  reviewer's machine" requirement, satisfied at the outermost layer.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="models">
+  <div class="kicker">02 · src/models.py</div>
+  <h2><span class="idx">02</span>Data Contracts — the Nouns of the Program</h2>
+  <p><code class="i">models.py</code> has no algorithm in it. Its entire value is turning "a dict that
+  came from a JSON file, which could contain absolutely anything" into a typed object that the
+  rest of the program can trust <strong>without re-checking</strong>. This is <code class="i">pydantic</code>'s
+  whole pitch: validate once, at the boundary, then treat the result as ground truth everywhere else.</p>
+
+  <div class="grid cols-2">
+    <div class="card"><h5>ParamType &amp; PYTHON_TYPE_BY_PARAM_TYPE</h5>
+      <p>A <code class="i">Literal["string","number","integer","boolean"]</code> plus a dict mapping
+      each literal to its real Python type. This dict is imported by both <code class="i">decoder.py</code>
+      (to decide what characters are legal) and <code class="i">output.py</code> (to decide what the
+      final parsed value must look like) — <strong>one table, two consumers</strong>, so the decoder's
+      idea of "number" and the validator's idea of "number" can never drift apart.</p></div>
+    <div class="card"><h5>FunctionCatalog</h5>
+      <p>Wraps <code class="i">list[FunctionDefinition]</code> and builds a private
+      <code class="i">_by_name</code> index in a <code class="i">@model_validator(mode="after")</code>
+      hook — meaning the index is built exactly once, right after validation succeeds, and is
+      guaranteed to exist for every catalog object that exists. It also rejects zero functions and
+      duplicate names <em>at load time</em>, not three modules later when something looks up
+      a name and silently gets the wrong function.</p></div>
+    <div class="card"><h5>PromptItem / FunctionCallResult</h5>
+      <p>The input and output record shapes. <code class="i">FunctionCallResult.parameters</code> is
+      typed <code class="i">dict[str, ParamValue]</code> where <code class="i">ParamValue = Union[StrictBool,
+      StrictInt, float, StrictStr]</code> — the <code class="i">Strict*</code> variants matter: without
+      them, pydantic's normal type coercion would happily turn <code class="i">1</code> into
+      <code class="i">True</code> or <code class="i">"3"</code> into <code class="i">3</code>, silently
+      hiding a decoder bug behind "helpful" coercion.</p></div>
+    <div class="card"><h5>Config</h5>
+      <p>Four fields, three <code class="i">Path</code>s and a <code class="i">float</code> — the
+      complete, validated configuration surface of the whole program. Everything downstream takes
+      a <code class="i">Config</code>, never raw strings or raw argv.</p></div>
+  </div>
+
+  <div class="callout cyan">
+    <div class="lbl">Defend this</div>
+    <p><strong>"Why pydantic and not just dicts?"</strong> — Because a malformed
+    <code class="i">functions_definition.json</code> (a missing <code class="i">"type"</code>, a
+    duplicate function name, a non-string <code class="i">"name"</code>) fails loudly and immediately
+    at <code class="i">fcts_loader()</code>, with a message naming the exact file and the exact field.
+    Without it, that same mistake would surface as a cryptic <code class="i">KeyError</code> or
+    <code class="i">AttributeError</code> deep inside <code class="i">decoder.py</code>, on a totally
+    unrelated line, minutes into a run.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="loader">
+  <div class="kicker">03 · src/loader.py</div>
+  <h2><span class="idx">03</span>Loading the World: Functions, Prompts, and the Vocabulary</h2>
+  <p><code class="i">json_loader</code> is the one place <code class="i">json.load</code> is ever called
+  directly, and it exists purely to translate Python's default exceptions
+  (<code class="i">FileNotFoundError</code>, <code class="i">json.JSONDecodeError</code>,
+  <code class="i">OSError</code>) into messages that name the offending file and, for JSON errors,
+  the exact line and column. <code class="i">fcts_loader</code> and <code class="i">prompt_loader</code>
+  are thin wrappers that feed the raw dict/list into the pydantic models from Section 02 and
+  translate <code class="i">pydantic.ValidationError</code> into a plain <code class="i">ValueError</code>
+  — collapsing two exception vocabularies (pydantic's and Python's built-ins) into the one
+  <code class="i">PipelineError</code> tuple that <code class="i">__main__.py</code> already knows
+  how to handle.</p>
+
+  <h3>The interesting part: turning a raw vocab.json into usable text</h3>
+  <p>The tokenizer's <code class="i">vocab.json</code> does not map token IDs to plain text. It maps
+  them to a <strong>byte-level, GPT-2-style display encoding</strong>: every one of the 256 possible
+  byte values is remapped to a printable Unicode character so the vocabulary file itself can be
+  valid, human-readable-ish JSON. The visible consequence is things like <code class="i">"Ġcat"</code>
+  instead of <code class="i">" cat"</code> — that leading <code class="i">Ġ</code> (U+0120) is standing
+  in for a literal space byte.</p>
+
+  <div class="code">
+    <div class="bar"><span>src/loader.py</span><span>_gpt2_byte_decoder()</span></div>
+    <pre><span class="k">def</span> <span class="f">_gpt2_byte_decoder</span>() -> dict[str, int]:
+    byte_values = (
+        list(range(ord(<span class="s">"!"</span>), ord(<span class="s">"~"</span>) + <span class="n">1</span>))
+        + list(range(ord(<span class="s">"¡"</span>), ord(<span class="s">"¬"</span>) + <span class="n">1</span>))
+        + list(range(ord(<span class="s">"®"</span>), ord(<span class="s">"ÿ"</span>) + <span class="n">1</span>))
+    )
+    display_chars = byte_values[:]
+    n = <span class="n">0</span>
+    <span class="k">for</span> b <span class="k">in</span> range(<span class="n">256</span>):
+        <span class="k">if</span> b <span class="k">not in</span> byte_values:
+            byte_values.append(b); display_chars.append(<span class="n">256</span> + n); n += <span class="n">1</span>
+    <span class="k">return</span> {chr(c): b <span class="k">for</span> b, c <span class="k">in</span> zip(byte_values, display_chars)}</pre>
+  </div>
+
+  <p>Reading this the way you should be able to reconstruct it out loud: the "nice" printable ASCII
+  and Latin-1 ranges (<code class="i">!</code> through <code class="i">~</code>, <code class="i">¡</code>
+  through <code class="i">¬</code>, <code class="i">®</code> through <code class="i">ÿ</code>) already map
+  to themselves — byte 65 (<code class="i">"A"</code>) displays as <code class="i">"A"</code>. The
+  remaining ~68 byte values that would otherwise render as control characters or be unsafe in JSON
+  (byte 32, the space, is a good example — it's <em>not</em> in that "nice" range) get shifted up
+  into the Unicode private-ish range starting at 256, so byte 32 (space) ends up displayed as some
+  character like <code class="i">Ġ</code>. Building the dict as <code class="i">{display_char:
+  original_byte}</code> and running every character of a raw vocab token through it, then decoding
+  the resulting byte string as UTF-8, is exactly GPT-2's/BPE's published byte-to-unicode scheme run
+  in reverse — turning <code class="i">"Ġcat"</code> back into <code class="i">" cat"</code>.</p>
+
+  <div class="callout">
+    <div class="lbl">Why this had to be hand-built</div>
+    <p>The subject bans <code class="i">transformers</code>' high-level tokenizer conveniences from the
+    decision-making pipeline. <code class="i">sdk.get_path_to_vocab_file()</code> only hands you the raw
+    file — turning its contents into real characters your grammar can reason about
+    (<code class="i">state_tracker</code> checks things like <em>"is this character a digit"</em>, which
+    is meaningless on a raw <code class="i">"Ġcat"</code>-style string) is exactly the kind of
+    "from scratch" work the project is graded on.</p>
+  </div>
+
+  <p>The result is a <code class="i">VocabularyManager</code> — a bidirectional
+  <code class="i">id_to_token</code> / <code class="i">token_to_id</code> pydantic model — built once
+  per run and threaded through everything downstream that needs to go from a token ID the model
+  produced back to the literal text it represents.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="orchestrator">
+  <div class="kicker">04 · src/orchestrator.py</div>
+  <h2><span class="idx">04</span>The Pipeline: One Loop, One Shared Deadline</h2>
+  <p><code class="i">run_pipeline</code> is the conductor. It loads the catalog, the prompts, and the
+  vocabulary (Sections 02–03), then for every prompt: builds a natural-language instruction string
+  (<code class="i">build_prompt</code>), calls into <code class="i">decoder.py</code>, and hands the
+  result to <code class="i">output.py</code> to be validated and either accepted or downgraded to a
+  best-effort fallback. Nothing in this loop ever raises past itself — every failure mode is caught
+  and converted into <em>a result record</em>, because the contract is "every prompt produces exactly
+  one output row," full stop.</p>
+
+  <h3>build_prompt: the only place natural language is authored</h3>
+  <p>This function is deliberately not part of the decoding algorithm. It hands the model a plain-text
+  system-style instruction, with the full function catalog rendered as
+  <code class="i">name(params): description</code> lines and two worked examples — including one
+  deliberately tricky regex example, teaching the model the difference between a
+  <em>literal</em> substring and a <em>pattern</em> before it ever sees a real prompt. This is prompt
+  engineering, not grammar engineering: it improves the odds the model's logits point at the
+  <em>right</em> function and the <em>right</em> values. It has zero influence on whether the output is
+  valid JSON — that guarantee comes entirely from <code class="i">decoder.py</code>, independent of
+  how good or bad this prompt text is.</p>
+
+  <div class="callout cyan">
+    <div class="lbl">A precise way to say this to an evaluator</div>
+    <p><strong>Accuracy</strong> (picking the right function, the right numbers) is a
+    prompt-engineering and model-capability problem — <code class="i">build_prompt</code>'s job.
+    <strong>Validity</strong> (the output parses, matches the schema, uses declared parameter names
+    and types) is a decoding-algorithm problem, solved once, independent of prompt quality — that's
+    the whole point of constrained decoding.</p>
+  </div>
+
+  <h3>The shared deadline — and the "everything after becomes unknown" behavior</h3>
+  <p>This is the mechanic you flagged as something you don't love. Here is exactly what it does and
+  why, so you can decide with full information whether to leave it as-is (which is a legitimate
+  choice) or change it.</p>
+
+  <div class="code">
+    <div class="bar"><span>src/orchestrator.py</span><span>run_pipeline()</span></div>
+    <pre>start = time.time()
+deadline = start + config.time_budget_seconds   <span class="c"># one fixed point in time, computed once</span>
+
+<span class="k">for</span> i, item <span class="k">in</span> enumerate(prompts, start=<span class="n">1</span>):
+    <span class="k">if</span> time.time() >= deadline:
+        result = assemble_fallback_result(item.prompt, catalog, <span class="s">""</span>)
+        <span class="c"># ... report + append, then `continue` to the next prompt</span></pre>
+  </div>
+
+  <p>Notice <code class="i">deadline</code> is computed <strong>once</strong>, before the loop starts,
+  as an absolute point in wall-clock time (<code class="i">start + time_budget_seconds</code>) — not
+  a per-prompt timer that resets. <code class="i">time.time()</code> is monotonically increasing (it
+  never goes backwards mid-run). So the check <code class="i">time.time() >= deadline</code>, once it
+  becomes <code class="i">True</code> for one prompt, is <strong>mathematically guaranteed to stay
+  <code class="i">True</code> for every remaining prompt</strong> in the batch — there is no code path
+  by which it could become <code class="i">False</code> again later in the same run. That is exactly
+  the behavior you noticed: one slow prompt (or a few) exhausts the budget, and every prompt after it
+  falls straight to <code class="i">assemble_fallback_result(item.prompt, catalog, "")</code> — empty
+  partial text, no name recoverable, so <code class="i">name="unknown", parameters={}</code> — without
+  the decoder ever being invoked for them, even if any individual one of those remaining prompts
+  would have finished in well under a second.</p>
+
+  <div class="callout">
+    <div class="lbl">This is a design choice, not a bug — but it's the wrong shape of budget</div>
+    <p>It correctly guarantees the subject's <strong>"process the whole test set in under 5 minutes"</strong>
+    requirement: worst case, the batch stops doing real work the instant the shared budget is spent.
+    Its weakness is exactly what you noticed: the budget is <em>spent</em>, not <em>redistributed</em>.
+    A batch-level deadline with no per-prompt allowance means one pathological prompt can "poison"
+    every prompt queued after it, even though the population's average cost per prompt is nowhere
+    near the limit. A straightforward, still-simple improvement — worth mentioning if asked "how
+    would you improve this" — is giving each remaining prompt its own slice of the
+    <em>remaining</em> budget: e.g. <code class="i">per_prompt_deadline = min(deadline, time.time() +
+    (deadline - time.time()) / remaining_count)</code>, recomputed every iteration. That preserves the
+    same hard ceiling on total time while letting individual fast prompts still get a fair shot even
+    after a slow one.</p>
+  </div>
+
+  <p>Two other things worth being able to narrate: <code class="i">GenerationIncomplete</code>
+  (raised by <code class="i">decoder.py</code> when it runs out of tokens, hits the deadline
+  mid-generation, or the masker finds zero legal tokens) always carries whatever text <em>was</em>
+  generated, in <code class="i">e.partial_text</code> — that's what lets
+  <code class="i">assemble_fallback_result</code> attempt best-effort recovery via regex instead of
+  giving up entirely. And the broad <code class="i">except (OSError, ValueError, RuntimeError)</code>
+  clause is exactly the <code class="i">PipelineError</code> tuple again, this time caught
+  <em>per prompt</em> rather than around the whole program, so one malformed model output can't take
+  down the entire batch.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="output">
+  <div class="kicker">05 · src/output.py</div>
+  <h2><span class="idx">05</span>From Generated Text to a Trustworthy Verdict</h2>
+  <p>It is tempting to assume that because <code class="i">decoder.py</code> guarantees valid,
+  schema-compliant JSON, <code class="i">output.py</code>'s job is trivial. It isn't skipped, and
+  that's intentional: <code class="i">assemble_result</code> re-parses and re-validates the generated
+  text completely independently of the decoder's internal state — checking JSON validity, the exact
+  <code class="i">{"name","parameters"}</code> key set, that the name exists in the catalog, that the
+  parameter key set exactly matches the function's declared signature, and that every value's
+  <em>runtime Python type</em> matches its declared schema type (with a deliberate special case:
+  <code class="i">bool</code> is a subclass of <code class="i">int</code> in Python, so
+  <code class="i">_value_matches_declared_type</code> explicitly rejects a bare
+  <code class="i">True</code>/<code class="i">False</code> from silently passing as an
+  <code class="i">"integer"</code>).</p>
+
+  <div class="callout cyan">
+    <div class="lbl">Why re-validate what the decoder already guaranteed?</div>
+    <p>Defense in depth, and a genuinely good engineering habit to name out loud: the decoder's
+    guarantee is only as good as the decoder's own code being bug-free. Re-validating downstream,
+    from the generated <em>text</em> alone, with zero knowledge of decoder internals, means a subtle
+    decoder bug gets caught here — as a clear <code class="i">ValueError</code> naming the exact
+    prompt and field — instead of silently corrupting the output file.</p>
+  </div>
+
+  <p>The two normalization helpers matter for exactness: <code class="i">_coerce_value</code> forces
+  a JSON integer that's semantically a "number" parameter into a real Python <code class="i">float</code>
+  (so <code class="i">3</code> becomes <code class="i">3.0</code> in the output, matching the declared
+  type precisely), and <code class="i">_strip_copied_quotes</code> cleans up a common small-model
+  artifact — copying a quoted word straight out of the prompt, quote marks and all, into a string
+  argument.</p>
+
+  <h3>The fallback path: best-effort salvage, never a crash</h3>
+  <p>When generation is incomplete, <code class="i">assemble_fallback_result</code> runs two regexes
+  against whatever partial text exists: <code class="i">_extract_partial_name</code> looks for a
+  complete <code class="i">"name": "..."</code> pair, and <code class="i">_extract_partial_value</code>
+  looks for a complete <code class="i">"<em>key</em>": <em>value</em></code> pair per declared
+  parameter. Anything not found — including, deliberately, anything cut off mid-token — becomes the
+  literal string <code class="i">"unknown"</code>, and if not even the function name can be
+  recovered, the whole record becomes <code class="i">{"name": "unknown", "parameters": {}}</code>.
+  This is the single mechanism producing every <code class="i">"unknown"</code> you see in your
+  output — both the "ran out of time budget entirely" case from Section 04 and the "decoder started
+  but didn't finish this one prompt" case funnel through this exact same function.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="decoder" class="wide">
+  <div class="kicker">06 · src/decoder.py — the heart of the project</div>
+  <h2><span class="idx">06</span>decoder.py: The Constrained-Decoding Engine</h2>
+  <p>Everything so far has been plumbing around one core idea, and it's worth stating that idea in
+  one sentence before touching a line of code:</p>
+
+  <div class="callout">
+    <div class="lbl">The core idea</div>
+    <p>At every single generation step, instead of asking the model to <em>produce</em> valid output
+    and hoping, the program first computes the complete set of tokens that <em>could legally come
+    next</em> given everything generated so far — and forcibly sets every other token's logit to
+    <code class="i">-inf</code> before the model is even allowed to pick. The model only ever gets to
+    choose <em>which</em> legal continuation it prefers, never whether to be legal.</p>
+  </div>
+
+  <p>This is implemented as <strong>two independent, stacked layers of "what's legal here"</strong>,
+  kept deliberately separate in the code:</p>
+
+  <div class="grid cols-2">
+    <div class="card"><h5>Layer 1 — <code class="i">state_tracker</code></h5>
+      <p>A pure JSON grammar automaton. Knows nothing about function names or parameter types.
+      Answers only: "is this character syntactically legal JSON right now?" (balanced braces, quotes,
+      colons, commas, valid number/string/literal shapes per RFC 8259).</p></div>
+    <div class="card"><h5>Layer 2 — <code class="i">schema_resolver</code></h5>
+      <p>Wraps Layer 1. Knows about the live <code class="i">FunctionCatalog</code>. Answers the
+      narrower question: "of the characters Layer 1 would allow, which ones are <em>also</em>
+      consistent with the exact two-key shape, the closed set of real function names, and the
+      selected function's declared parameter names/types?"</p></div>
+  </div>
+
+  <p>Why split it this way instead of one big function is Section 07's whole subject — hold that
+  thought and first understand each layer on its own.</p>
+
+  <h3 id="grammar">6.1 — The JSON automaton: <code class="i">Pos</code> and <code class="i">state_tracker</code></h3>
+  <p><code class="i">Pos</code> is an <code class="i">Enum</code> naming every distinct "place" the
+  grammar can be in: expecting a root value, inside an object expecting a key-or-close-brace, past
+  a colon expecting a value, inside a string, mid-escape-sequence, mid-number, mid-literal
+  (<code class="i">true</code>/<code class="i">false</code>/<code class="i">null</code>), and so on.
+  What makes this a real formal-grammar engine rather than a flat switch statement is that
+  <code class="i">f1_state</code> — the variable passed around everywhere as <code class="i">state</code>
+  or <code class="i">stack</code> — is literally a <strong>stack</strong> (a Python <code class="i">list</code>),
+  and <code class="i">_descend</code> <em>pushes</em> a new frame onto it every time a new JSON value
+  begins:</p>
+
+  <div class="code">
+    <div class="bar"><span>src/decoder.py</span><span>_descend()</span></div>
+    <pre><span class="k">def</span> <span class="f">_descend</span>(stack: list, char: str) -> List | <span class="n">None</span>:
+    <span class="s">"""Push the state entered by starting a new value with `char`."""</span>
+    <span class="k">if</span> char == <span class="s">"{"</span>:      stack.append(Pos.OBJ_KEY_OR_CLOSE)
+    <span class="k">elif</span> char == <span class="s">'"'</span>:    stack.append(Pos.IN_STRING)
+    <span class="k">elif</span> char == <span class="s">"-"</span>:    stack.append((Pos.IN_NUMBER, <span class="s">"start_needs_digit"</span>))
+    <span class="k">elif</span> char == <span class="s">"0"</span>:    stack.append((Pos.IN_NUMBER, <span class="s">"leading_zero"</span>))
+    <span class="k">elif</span> char.isdigit(): stack.append((Pos.IN_NUMBER, <span class="s">"digits"</span>))
+    <span class="k">elif</span> char <span class="k">in</span> _LITERALS: stack.append((Pos.IN_LITERAL, _LITERALS[char][<span class="n">1</span>:]))
+    <span class="k">else</span>: <span class="k">return</span> <span class="n">None</span>
+    <span class="k">return</span> stack</pre>
+  </div>
+
+  <p>This makes <code class="i">state_tracker</code> a <strong>pushdown automaton (PDA)</strong>, not
+  a plain finite-state machine — the distinction is precisely why it can correctly handle arbitrarily
+  nested <code class="i">{...}</code> without any hardcoded depth limit: entering an object pushes
+  a frame, closing one (<code class="i">"}"</code> in <code class="i">OBJ_COMMA_OR_CLOSE</code> or
+  <code class="i">OBJ_KEY_OR_CLOSE</code>) pops it, and the automaton's "current state" is always just
+  <code class="i">stack[-1]</code>. Popping back to the parent's own pending state after a nested
+  value finishes is exactly what a plain FSM cannot express and a PDA can.</p>
+
+  <p>Watch the number sub-machine specifically — it's the trickiest part of the JSON grammar and the
+  part most people get subtly wrong by hand:</p>
+
+  <div class="stackbox">
+    <div>
+      <div class="stackcol">
+        <div class="stackcell top">"digits"</div>
+        <div class="stackcell">IN_NUMBER</div>
+      </div>
+      <div class="stacklabel">after "12"</div>
+    </div>
+    <div>
+      <div class="stackcol">
+        <div class="stackcell top">"dot_needs_digit"</div>
+        <div class="stackcell">IN_NUMBER</div>
+      </div>
+      <div class="stacklabel">after "12."</div>
+    </div>
+    <div>
+      <div class="stackcol">
+        <div class="stackcell top">"frac_digits"</div>
+        <div class="stackcell">IN_NUMBER</div>
+      </div>
+      <div class="stacklabel">after "12.3"</div>
+    </div>
+    <div>
+      <div class="stackcol">
+        <div class="stackcell top">OBJ_COMMA_OR_CLOSE</div>
+      </div>
+      <div class="stacklabel">number frame popped on "," or "}"</div>
+    </div>
+  </div>
+
+  <p>Each of the four number sub-states enforces one real JSON rule that's easy to get wrong:
+  <code class="i">"start_needs_digit"</code> forbids a bare trailing minus sign; <code class="i">"leading_zero"</code>
+  forbids <code class="i">"012"</code> (JSON disallows leading zeros — only a lone <code class="i">0</code>
+  or <code class="i">0.x</code> is legal) by only accepting a following <code class="i">"."</code>, never
+  another digit; <code class="i">"dot_needs_digit"</code> forbids a trailing bare dot like
+  <code class="i">"12."</code>; and when a non-digit, non-dot character finally arrives, the number
+  frame is popped (<code class="i">stack.pop()</code>) and <strong>the same character is
+  re-dispatched</strong> (<code class="i">return state_tracker(stack, char)</code>) into whatever
+  state now sits below it — that's how a number cleanly hands control back to
+  "comma-or-close" without the caller needing to know the number just ended.</p>
+
+  <h3 id="schema">6.2 — The schema overlay: <code class="i">SchemaState</code> and <code class="i">schema_resolver</code></h3>
+  <p><code class="i">SchemaState</code> is a small dataclass tracking everything Layer 1 doesn't know
+  about: which function has been <code class="i">selected</code> so far (<code class="i">None</code>
+  until the <code class="i">"name"</code> string is complete), which of its parameters are still
+  <code class="i">remaining_params</code>, the declared type of whichever parameter value is currently
+  being written, and a live <code class="i">buffer</code> used to match partial strings — a function
+  name or a parameter key — character by character against the legal pool.</p>
+
+  <p><code class="i">schema_resolver(f1_state, f2, char)</code> is where the two layers actually meet.
+  Read it as a sequence of <strong>guards</strong> (early <code class="i">return None</code>s
+  representing "no, not here") followed by a call into <code class="i">state_tracker</code>, followed
+  by <strong>bookkeeping</strong> that advances <code class="i">f2</code> based on what
+  just became true. The single most instructive guard is this one:</p>
+
+  <div class="code">
+    <div class="bar"><span>src/decoder.py</span><span>schema_resolver() — closed-set name matching</span></div>
+    <pre><span class="k">if</span> (prev_top == Pos.IN_STRING <span class="k">and</span> char != <span class="s">'"'</span>
+        <span class="k">and</span> f2.collecting <span class="k">in</span> (<span class="s">"name"</span>, <span class="s">"key"</span>)):
+    candidate = f2.buffer + char
+    pool = (
+        [fn.name <span class="k">for</span> fn <span class="k">in</span> f2.catalog.functions]
+        <span class="k">if</span> f2.collecting == <span class="s">"name"</span> <span class="k">else</span> list(f2.remaining_params))
+    <span class="k">if not</span> any(name.startswith(candidate) <span class="k">for</span> name <span class="k">in</span> pool):
+        <span class="k">return</span> <span class="n">None</span>   <span class="c"># no real function/param name starts this way — illegal</span></pre>
+  </div>
+
+  <p>This is the mechanism that makes <strong>function selection itself part of constrained
+  decoding</strong>, not a separate heuristic step run before or after it. While the model is
+  writing the <code class="i">"name"</code> string one character at a time, every candidate character
+  is checked against <em>"is there at least one real function name that starts this way"</em> — so
+  the model can never wander off into inventing a function that doesn't exist; it is only ever
+  choosing among the real, declared names, and it is the model's own logits — via
+  <code class="i">token_selector</code>'s greedy argmax over whatever legal characters/tokens survive —
+  that decide <em>which</em> real name wins. The exact same mechanism, reused unchanged, disambiguates
+  parameter keys once inside <code class="i">"parameters": {...}</code>.</p>
+
+  <p>The rest of <code class="i">schema_resolver</code>'s guards enforce, respectively: the two root
+  keys must appear as literally <code class="i">"name"</code> then <code class="i">"parameters"</code>,
+  in that order, and no third key is ever legal; once <code class="i">"parameters"</code>'s colon is
+  written, the very next non-whitespace character must be <code class="i">{</code> (no scalar
+  <code class="i">"parameters"</code> value is ever allowed); a value inside
+  <code class="i">parameters</code> must start with a character legal for that key's
+  <em>declared</em> type (<code class="i">_value_start_allowed</code> — a string parameter can only
+  ever start with <code class="i">"</code>, a number/integer only with a digit or
+  <code class="i">-</code>, a boolean only with <code class="i">t</code>/<code class="i">f</code>);
+  a comma inside <code class="i">parameters</code> is illegal while parameters remain unfilled and
+  the closing <code class="i">}</code> of <code class="i">parameters</code> is illegal while any
+  are still missing (both directions of "you must supply exactly the declared parameters, no more,
+  no fewer"); and backslash-escaping is deliberately forbidden entirely inside the
+  <code class="i">"name"</code>/key/root-key strings (real names never contain a backslash, so
+  allowing one there is pure attack surface with zero benefit) while still permitted, with a
+  2-backslash lookback guard against runaway <code class="i">\\\\\\...</code> sequences, inside
+  ordinary string <em>values</em>.</p>
+
+  <div class="callout red">
+    <div class="lbl">The part that looks like complexity for its own sake — but isn't</div>
+    <p>This function is dense. Every guard in it maps to one sentence of the function-calling
+    <em>schema</em> (not the JSON grammar — that's Layer 1's job), and every one of those sentences
+    is a real requirement from the subject: exact key names, exact key order, exact parameter
+    set, exact types, real function names only. If an evaluator asks you to justify any single
+    <code class="i">if</code> in this function, you should be able to answer <em>"this is what
+    stops the model from doing X, and X would violate requirement Y."</em></p>
+  </div>
+
+  <h3 id="trie">6.3 — Making it fast: the vocabulary trie and cached transitions</h3>
+  <p>Here's the performance problem this project actually has to solve: Qwen3-0.6B's vocabulary has
+  on the order of 150,000 tokens. Naively, checking "is this token legal" for every one of them, at
+  every single generation step, by re-running <code class="i">schema_resolver</code> character-by-character
+  over each token's full string independently, would mean redoing the same work for every token that
+  happens to share a prefix — and nearly all of them do, since the vocabulary is built from a small
+  alphabet.</p>
+
+  <p><code class="i">build_vocab_trie</code> solves the "shared prefixes" half of this: it's built
+  <strong>once</strong>, before generation starts, as a nested dict where each edge is one character
+  and each terminal node lists every token ID whose full string ends exactly there. Then
+  <code class="i">logit_masker</code> walks this trie <em>recursively alongside</em> the automaton,
+  advancing both one character at a time — so a common prefix shared by thousands of tokens is
+  validated against <code class="i">schema_resolver</code> exactly once, and every token that shares
+  it inherits that answer for free by simply continuing to whichever branches remain reachable.</p>
+
+  <div class="code">
+    <div class="bar"><span>src/decoder.py</span><span>logit_masker() — trie walk with memoized transitions</span></div>
+    <pre><span class="k">def</span> <span class="f">walk</span>(node: dict, state1: list, state2: SchemaState) -> <span class="n">None</span>:
+    terminal = node.get(<span class="n">None</span>)
+    <span class="k">if</span> terminal: legal_ids.extend(terminal)
+    <span class="k">for</span> ch, child <span class="k">in</span> node.items():
+        <span class="k">if</span> ch <span class="k">is</span> <span class="n">None</span>: <span class="k">continue</span>
+        key = (_state_key(state1, state2), ch)
+        <span class="k">if</span> key <span class="k">in</span> transition_cache:
+            result = transition_cache[key]
+        <span class="k">else</span>:
+            result = schema_resolver(state1, state2, ch)
+            transition_cache[key] = result
+        <span class="k">if</span> result <span class="k">is not</span> <span class="n">None</span>:
+            walk(child, *result)</pre>
+  </div>
+
+  <p><code class="i">_state_key</code> then solves the "same state visited more than once" half:
+  it turns <code class="i">(f1_state, f2)</code> into a hashable tuple, so
+  <code class="i">transition_cache[(state_key, char)]</code> memoizes <em>"from this exact
+  automaton+schema state, does character c lead anywhere legal"</em> across the whole trie walk —
+  and, since the cache is created once per call to <code class="i">generate_function_call</code> and
+  threaded through every step, across the entire generation of one prompt. States genuinely do
+  repeat a lot in this grammar (e.g. every time the model is inside a generic string value with no
+  further constraint, or every time it revisits <code class="i">OBJ_COMMA_OR_CLOSE</code> at the same
+  depth), so this cache is doing real, measurable work, not just defensive tidiness.</p>
+
+  <div class="grid cols-3">
+    <div class="card"><h5>Without trie or cache</h5><p>~vocab_size × avg_token_length individual
+    <code class="i">schema_resolver</code> calls per generation step.</p></div>
+    <div class="card"><h5>Trie only</h5><p>Shared prefixes validated once; work scales with the
+    trie's actual branching, not raw vocab size.</p></div>
+    <div class="card"><h5>Trie + transition cache</h5><p>Repeated (state, char) pairs across the
+    whole prompt's generation are computed once, ever.</p></div>
+  </div>
+
+  <h3 id="loop">6.4 — Putting it together: the generation loop</h3>
+  <p><code class="i">generate_function_call</code> is deliberately short, because everything hard has
+  already happened in the three building blocks above. Each iteration: check the shared deadline
+  (Section 04); call <code class="i">sdk.get_logits_from_input_ids</code> for the raw, unfiltered
+  logits over the whole vocabulary; call <code class="i">logit_masker</code> to set every illegal
+  logit to <code class="i">-inf</code>; call <code class="i">token_selector</code>, which is a plain
+  <code class="i">argmax</code> — <strong>deterministic, greedy, no sampling</strong> — over what
+  survives; then, critically, walk the chosen token's string <strong>one character at a time</strong>
+  through <code class="i">schema_resolver</code> again to actually commit the state transition:</p>
+
+  <div class="code">
+    <div class="bar"><span>src/decoder.py</span><span>generate_function_call() — the loop body</span></div>
+    <pre>logits = sdk.get_logits_from_input_ids(input_ids)
+masked = logit_masker(logits, trie, f1, f2, transition_cache)
+token_id = token_selector(masked)                 <span class="c"># argmax, deterministic</span>
+token_str = vocab.id_to_token[token_id]
+
+<span class="k">for</span> char <span class="k">in</span> token_str:                        <span class="c"># tokens rarely align to 1 JSON char</span>
+    result = schema_resolver(f1, f2, char)
+    <span class="k">if</span> result <span class="k">is</span> <span class="n">None</span>:
+        <span class="k">raise</span> GenerationIncomplete(<span class="s">f"Masker selected illegal token {token_str!r}"</span>, ...)
+    f1, f2 = result
+
+generated_text += token_str
+input_ids = input_ids + [token_id]</pre>
+  </div>
+
+  <p>That inner <code class="i">for char in token_str</code> loop is not incidental — it's the fix for
+  a real problem named directly in your own README's Challenges section: BPE tokens almost never
+  align one-to-one with one JSON-grammar-relevant character. A single token might be
+  <code class="i">'multiply'</code> (eight characters at once), or a number and a comma fused
+  together, or half of an escape sequence. Re-running the character-level resolver here — the exact
+  same function already used for masking — guarantees the committed state is always correct
+  regardless of how the tokenizer happened to chunk the text, and the
+  <code class="i">if result is None: raise GenerationIncomplete(...)</code> is a deliberate
+  "should never happen" assertion: if the masker did its job upstream, every token that survives
+  masking is guaranteed to be re-walkable here without failure. Its only purpose is to convert a
+  silent internal contradiction into a loud, diagnosable one.</p>
+
+  <p>Termination is equally direct: <code class="i">f1 == [Pos.ROOT_DONE]</code> means the root
+  value (the whole <code class="i">{...}</code> object) closed and the stack unwound completely —
+  the JSON is syntactically finished, and because Layer 2's guards were active the entire way, it is
+  also schema-complete by construction. If that never happens within <code class="i">max_new_tokens</code>
+  (150), or the shared deadline hits mid-generation, or the masker ever produces zero legal tokens
+  (an internal bug, not a model failure), the loop raises <code class="i">GenerationIncomplete</code>
+  carrying whatever text exists so far — which is exactly the object Section 04/05's fallback path
+  consumes.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="comparison" class="wide">
+  <div class="kicker">07 · The question that matters most</div>
+  <h2><span class="idx">07</span>Grammar + Schema vs. "Just Hardcode the Blueprint"</h2>
+  <p>This is the comparison an evaluator is most likely to push on, because the alternative genuinely
+  looks simpler on paper: once the model has picked a function, you already know — from
+  <code class="i">functions_definition.json</code> — the <em>exact</em> literal skeleton the rest of
+  the JSON has to be. Why not just template it?</p>
+
+  <h3>What the "hardcoded blueprint" approach would look like</h3>
+  <p>Concretely: pick the function first (by whatever means), then build a literal target string like
+  <code class="i">'{"name": "fn_add_numbers", "parameters": {"a": '</code> character-for-character, and
+  at each generation step, mask every logit except the one token that continues that exact literal
+  string. When you hit a value slot, mask to that parameter's type-specific characters (digits for a
+  number, <code class="i">"</code> to open a string) instead of a literal, then resume the literal
+  skeleton for the closing punctuation. This is "inject the JSON schema directly" — the blueprint
+  is a hardcoded string template per function, built from the schema once, ahead of generation.</p>
+
+  <div class="callout red">
+    <div class="lbl">The one problem this approach can't dodge</div>
+    <p>It needs to know <em>which</em> function it's templating before it can write a single
+    character of the template — but choosing the function <strong>is</strong> the core task the
+    model has to solve from the prompt. If the blueprint approach picks the function by any means
+    other than letting the model's own logits choose among the real names character-by-character
+    during generation (exactly what your <code class="i">"name"</code>-collecting guard in Section
+    6.2 does), it has smuggled in a heuristic or a separate classification pass — which is precisely
+    what the subject's <em>"function selection performed entirely by the model's own logits, no
+    keyword matching or heuristic routing"</em> requirement forbids. To stay compliant, a blueprint
+    system still needs a closed-set-constrained free generation phase for the <code class="i">"name"</code>
+    field before any blueprint can be selected — at which point it has already reinvented a
+    miniature version of your Layer 2.</p>
+  </div>
+
+  <table>
+    <tr><th>Dimension</th><th>Your grammar + schema layer</th><th>Hardcoded blueprint per function</th></tr>
+    <tr><td>Function selection</td><td>Resolved <em>during</em> generation by real logits over a closed set of names — fully compliant with "no heuristics."<br><span class="badge good">compliant</span></td><td>Must be resolved <em>before</em> templating starts — either reinvents the same closed-set generation step, or breaks the "model decides" requirement.<br><span class="badge bad">risk</span></td></tr>
+    <tr><td>Generality to schema changes</td><td>Reads <code class="i">functions_definition.json</code> at runtime; add/remove/edit a function and nothing in <code class="i">decoder.py</code> changes.<br><span class="badge good">zero code changes</span></td><td>One template must exist per function; adding a function means generating (or writing) a new template.<br><span class="badge neutral">extra step, automatable</span></td></tr>
+    <tr><td>What guarantees validity</td><td>A from-scratch RFC-8259 pushdown automaton (Layer 1) — validity holds for <em>any</em> JSON shape, proven independent of any one schema.<br><span class="badge good">principled</span></td><td>Validity holds only because the literal string was hand-verified to be valid JSON — correct, but a much weaker, template-specific guarantee.<br><span class="badge neutral">correct but narrow</span></td></tr>
+    <tr><td>Conceptual relationship to real systems</td><td>Same family as production structured-generation libraries (regex/CFG compiled to an FSM/PDA, then to a per-step token mask) — the README even names <code class="i">outlines</code> as the studied reference.<br><span class="badge good">transferable</span></td><td>Closer to naive string templating with type-aware gaps; doesn't generalize as a technique beyond "one JSON shape at a time."<br><span class="badge bad">less transferable</span></td></tr>
+    <tr><td>Code complexity</td><td>~475 lines; two coupled state machines, several dense guard clauses, real edge cases (escaping, leading zeros, backslash runs).<br><span class="badge bad">higher</span></td><td>Considerably less code per template; the type-gap logic is the only non-trivial part.<br><span class="badge good">lower</span></td></tr>
+    <tr><td>Debuggability</td><td>A bug can hide in the interaction between two layers; harder to reason about all illegal paths at a glance.<br><span class="badge bad">harder</span></td><td>A wrong template is usually obvious just by reading the literal string.<br><span class="badge good">easier</span></td></tr>
+    <tr><td>Runtime cost per step</td><td>Trie walk + memoized transitions over the live vocabulary; more work per step, mitigated by caching (Section 6.3).<br><span class="badge neutral">higher, mitigated</span></td><td>A literal-string continuation is close to a single dictionary lookup — cheaper per step.<br><span class="badge good">lower</span></td></tr>
+    <tr><td>Extending to nested objects / arrays</td><td>Layer 1 already supports arbitrary <code class="i">{...}</code> nesting for free (it's a real PDA); only Layer 2's parameter-type vocabulary would need extending to admit them.<br><span class="badge good">natural extension</span></td><td>Every distinct nested shape needs its own hand-built template branch.<br><span class="badge bad">combinatorial</span></td></tr>
+  </table>
+
+  <h3>So which is "smarter"?</h3>
+  <p>Not a matter of taste — it follows directly from what the subject is actually testing. The
+  assignment isn't "produce valid JSON for six known functions" (a blueprint would ace that); it's
+  "build, from raw logits, the mechanism that makes producing invalid output <em>impossible</em>,
+  without leaning on structured-generation libraries, and without the model's function choice being
+  decided by anything other than the model." A hardcoded blueprint answers the first framing
+  extremely well and the second framing only by smuggling back in the exact free-form,
+  closed-set-constrained generation step your project already implements as Layer 2's name-matching
+  guard. In other words: <strong>the hardcoded approach isn't a simpler solution to the same
+  problem — it's a solution to an easier problem that quietly assumes the hard part (function
+  selection) is already solved.</strong> Your version solves the actual problem: general JSON
+  legality as a reusable, schema-independent foundation, with the specific schema constraint as a
+  thin, swappable overlay on top — the same layering real constrained-decoding systems use, built
+  by hand.</p>
+
+  <p>The honest cost is real, though, and worth stating plainly rather than glossing over: your
+  approach is more code, has a larger surface for subtle bugs (the guard-clause density in
+  <code class="i">schema_resolver</code> is the main risk), and is slower per token than a literal
+  continuation would be. None of that is free. It's the correct trade for what's being graded here.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="defense">
+  <div class="kicker">08 · Rehearsal</div>
+  <h2><span class="idx">08</span>Defending It Live — Anticipated Questions</h2>
+
+  <details class="qa">
+    <summary>Why is <code class="i">f1_state</code> a list instead of just a single enum value?</summary>
+    <div class="a"><p>Because JSON is a recursive, nestable grammar and a single current-state value
+    can't remember what to return to after a nested value closes. The list is a stack: entering any
+    value pushes a frame (<code class="i">_descend</code>), and closing one pops it, restoring
+    exactly the parent's pending state. This makes it a pushdown automaton, not a flat FSM — the
+    only structure that can correctly parse arbitrarily nested braces without hardcoding a depth
+    limit.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>Why is decoding greedy (argmax) instead of sampling with temperature?</summary>
+    <div class="a"><p>Because there is no notion of "more interesting" output for this task — a
+    function call is either the correct one or it isn't, and once logits are masked to the legal
+    set, sampling would only add variance with no upside. Greedy selection is also what makes a run
+    reproducible: the same prompt always produces the same output.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>What happens if the model "wants" an illegal token more than any legal one?</summary>
+    <div class="a"><p>It never gets the choice. <code class="i">logit_masker</code> sets every
+    illegal token's logit to <code class="i">-inf</code> <em>before</em> <code class="i">token_selector</code>'s
+    argmax runs, so illegal tokens are mathematically excluded from the selection, not merely
+    disfavored. This is the entire meaning of "producing malformed JSON becomes impossible rather
+    than merely unlikely" from your README.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>How do you guarantee the model can't invent a function or parameter name that doesn't exist?</summary>
+    <div class="a"><p>While a name or key is being collected character-by-character
+    (<code class="i">f2.collecting in ("name","key")</code>), every candidate character is checked
+    against <em>"does at least one real function name / remaining parameter name start with this
+    prefix"</em>; if none do, that character is illegal and its tokens are masked out. The model is
+    structurally confined to the real, declared identifiers the entire time it's writing one.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>Why validate everything again in output.py if decoder.py already guarantees correctness?</summary>
+    <div class="a"><p>Defense in depth: the decoder's guarantee is only as strong as the decoder's
+    own code. Re-parsing and re-validating the generated <em>text</em> independently, with zero
+    shared state, means a subtle bug in the 475-line decoding engine gets caught as a clear,
+    prompt-specific error message here rather than silently corrupting the output file. It's cheap
+    insurance against exactly the kind of bug that dense stateful code like
+    <code class="i">schema_resolver</code> is most prone to.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>Why does one slow prompt turn every remaining prompt's result into "unknown"?</summary>
+    <div class="a"><p>The time budget is a single fixed wall-clock deadline for the <em>whole batch</em>,
+    computed once at the start (<code class="i">start + time_budget_seconds</code>), not a
+    per-prompt timer. Since wall-clock time only moves forward, once <code class="i">time.time() >=
+    deadline</code> is true for one prompt it is true for every prompt after it, so the loop
+    correctly stops attempting real generation and every remaining prompt falls to the same
+    empty-partial-text fallback, which resolves to <code class="i">name="unknown"</code>. It's a
+    deliberate, simple way to guarantee the subject's "under 5 minutes for the full set" requirement
+    can never be violated; its known trade-off is that it doesn't redistribute leftover budget
+    across the remaining prompts individually.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>Does your grammar support nested objects or arrays as parameter values?</summary>
+    <div class="a"><p>Layer 1 (<code class="i">state_tracker</code>) can parse arbitrarily nested
+    <code class="i">{...}</code> structurally — that's inherent to it being a real PDA. What's
+    deliberately scoped out is Layer 2: <code class="i">ParamType</code> only declares
+    <code class="i">string / number / integer / boolean</code>, and <code class="i">_value_start_allowed</code>
+    only recognizes scalar value starts, so a nested object or array is never a legal parameter
+    <em>type</em> in this project's schema — not because the grammar layer couldn't support it, but
+    because the function catalog format never declares one. Extending it would mean adding an
+    <code class="i">"object"</code>/<code class="i">"array"</code> case to
+    <code class="i">ParamType</code>, <code class="i">PYTHON_TYPE_BY_PARAM_TYPE</code>, and
+    <code class="i">_value_start_allowed</code> — no change needed to Layer 1 at all.</p></div>
+  </details>
+
+  <details class="qa">
+    <summary>Why build a trie instead of just checking every vocab token independently?</summary>
+    <div class="a"><p>Because most of the ~150k tokens in Qwen3's vocabulary share long common
+    prefixes. Walking a trie alongside the automaton means a shared prefix is validated against
+    <code class="i">schema_resolver</code> exactly once for every token that shares it, instead of
+    redundantly re-deriving the same answer per token. The <code class="i">transition_cache</code>
+    on top of that memoizes repeated (state, character) pairs across the whole generation of one
+    prompt, since the same automaton states recur constantly (e.g. every generic string character,
+    every revisit of "comma or close").</p></div>
+  </details>
+</section>
+
+<!-- ============================================================ -->
+<section id="weaknesses">
+  <div class="kicker">09 · Intellectual honesty</div>
+  <h2><span class="idx">09</span>Honest Weak Points — Know Them Before They're Asked</h2>
+  <p>A defense that only lists strengths reads as rehearsed rather than understood. These are real,
+  named trade-offs in the current implementation — naming them unprompted is itself evidence of
+  mastery.</p>
+  <div class="grid cols-2">
+    <div class="card"><h5>Shared, non-redistributed time budget</h5>
+      <p>Covered in depth in Sections 04 and 08 — one exhausted deadline cascades to every remaining
+      prompt regardless of their individual cost.</p></div>
+    <div class="card"><h5>Guard-clause density in <code class="i">schema_resolver</code></h5>
+      <p>~15 early-return guards in one function is a real maintainability cost; a bug here is the
+      single most likely place for a subtle correctness issue to hide, which is exactly why
+      <code class="i">output.py</code>'s independent re-validation exists as a safety net.</p></div>
+    <div class="card"><h5>Greedy decoding forecloses recovery</h5>
+      <p>Because selection is always argmax with no backtracking, if the model's top legal choice at
+      some step leads toward an <em>accurate-but-suboptimal</em> completion, there's no mechanism to
+      reconsider — unlike beam search, which the subject's scope doesn't require but which would be
+      a legitimate accuracy improvement to mention.</p></div>
+    <div class="card"><h5>Flat scalar parameters only</h5>
+      <p>Deliberately scoped, and defensible (see the nested-objects Q&amp;A above), but it is a real
+      scope limitation of Layer 2, not a limitation of the grammar itself.</p></div>
+    <div class="card"><h5>Per-step cost still grows with vocabulary size</h5>
+      <p>The trie and cache reduce redundant work dramatically, but every generation step still
+      walks live trie branches; a pathologically branchy state (e.g. very early in a generic string
+      value) still visits more nodes than a template's O(1) literal lookup would.</p></div>
+    <div class="card"><h5>Fallback parameters are string <code class="i">"unknown"</code>, not typed</h5>
+      <p>In <code class="i">assemble_fallback_result</code>, an unrecoverable parameter becomes the
+      literal string <code class="i">"unknown"</code> even for a declared <code class="i">number</code>
+      or <code class="i">boolean</code> parameter — a deliberate, honest "we don't know" marker, but
+      one a strict downstream consumer expecting the declared type would need to handle explicitly.</p></div>
+  </div>
+</section>
+
+<footer>
+  call me maybe · v1.5.0 · Mohamed ENNIH · Qwen/Qwen3-0.6B · generated as a study companion for the uploaded <code>final/</code> submission
+</footer>
+
+</main>
+</div>
+
+<script>
+// scroll-spy for the sidebar TOC
+const links = Array.from(document.querySelectorAll('.toc-list a'));
+const targets = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+function onScroll(){
+  let idx = 0;
+  const y = window.scrollY + 140;
+  targets.forEach((t,i) => { if(t && t.offsetTop <= y) idx = i; });
+  links.forEach((a,i) => a.parentElement.classList.toggle('active', i===idx));
+}
+document.addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+</script>
+</body>
+</html>

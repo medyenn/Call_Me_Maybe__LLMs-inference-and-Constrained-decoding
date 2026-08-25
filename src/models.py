@@ -21,7 +21,7 @@ class Config(BaseModel):
     functions_definition: Path = Path("data/input/functions_definition.json")
     input: Path = Path("data/input/function_calling_tests.json")
     output: Path = Path("data/output/function_calling_results.json")
-    time_budget_seconds: float = 240.0
+    time_budget_seconds: float = 280.0
 
 
 class ParameterSpec(BaseModel):

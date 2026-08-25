@@ -41,7 +41,6 @@ help:
 	@echo "  clean        Remove Python/mypy/pytest caches"
 	@echo "  re           clean + install"
 	@echo "  lint         Run flake8 + mypy (mandatory flags)"
-	@echo "  lint-strict  Run flake8 + mypy --strict"
 	@echo "  test         Run pytest (not graded, recommended)"
 
-.PHONY: all install run debug clean re lint lint-strict test docs help
+.PHONY: all install run debug clean re lint test docs help
